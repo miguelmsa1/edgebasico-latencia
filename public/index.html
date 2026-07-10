@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello Edge - WebSocket RTT</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <main>
+        <img class="logo" src="/logo_telefonica.png" alt="Telefonica">
+        <h1>Hello Edge!</h1>
+        <p class="subtitle">Estás conectado vía internet al nodo de <strong id="edge-region">Bilbao</strong></p>
+
+        <section class="tools" aria-label="Medicion de RTT WebSocket">
+            <button id="run-test" type="button">Lanzar test de latencia</button>
+            <p class="status" id="status"></p>
+
+            <div class="results" aria-live="polite">
+                <article class="metric">
+                    <p class="label">IP detectada</p>
+                    <p class="value" id="client-ip">Pendiente</p>
+                </article>
+                <article class="metric">
+                    <p class="label">Ubicacion / operador</p>
+                    <p class="value" id="network">Pendiente</p>
+                </article>
+            </div>
+
+            <div class="summary" aria-live="polite" aria-label="Resumen medio de latencia">
+                <article class="summary-card">
+                    <p class="label">Mejor mediana</p>
+                    <p class="value" id="summary-best">Pendiente</p>
+                </article>
+                <article class="summary-card">
+                    <p class="label">Edge Bilbao</p>
+                    <p class="value" id="summary-edge">Pendiente</p>
+                </article>
+                <article class="summary-card">
+                    <p class="label">Diferencia</p>
+                    <p class="value" id="summary-diff">Pendiente</p>
+                </article>
+                <article class="summary-card">
+                    <p class="label">Targets válidos</p>
+                    <p class="value" id="summary-targets">Pendiente</p>
+                </article>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Destino</th>
+                            <th>Mediana media</th>
+                            <th>Min medio</th>
+                            <th>Max medio</th>
+                            <th>Jitter medio</th>
+                            <th>Vs más rápido</th>
+                            <th>Muestras</th>
+                        </tr>
+                    </thead>
+                    <tbody id="result-body"></tbody>
+                </table>
+            </div>
+
+            <p class="note">Método de medición: 5 rondas de calentamiento descartadas y 50 rondas útiles por destino y payload (64 B, 512 B y 1472 B). El navegador mide RTT de aplicación WebSocket entre envío y eco recibido; no es ICMP.</p>
+        </section>
+    </main>
+    <script src="/app.js"></script>
+</body>
+</html>

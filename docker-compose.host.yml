@@ -1,0 +1,17 @@
+services:
+  websocket-latency:
+    build: .
+    image: smartedge-websocket-latency:1.0
+    container_name: smartedge-websocket-latency
+    environment:
+      EDGE_REGION: "${EDGE_REGION:-Bilbao}"
+      EDGE_GALICIA_WS_URL: "${EDGE_GALICIA_WS_URL:-}"
+      EDGE_BARCELONA_WS_URL: "${EDGE_BARCELONA_WS_URL:-}"
+      EDGE_SEVILLA_WS_URL: "${EDGE_SEVILLA_WS_URL:-}"
+      AZURE_WS_URL: "${AZURE_WS_URL:-}"
+      AWS_WS_URL: "${AWS_WS_URL:-}"
+      GCP_WS_URL: "${GCP_WS_URL:-}"
+      SHOW_HIDDEN_HYPERSCALERS: "${SHOW_HIDDEN_HYPERSCALERS:-false}"
+      PORT: "80"
+    network_mode: host
+    restart: unless-stopped
