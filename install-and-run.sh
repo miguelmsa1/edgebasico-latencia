@@ -2,9 +2,9 @@
 set -euo pipefail
 
 # Defaults. Override inline, for example:
-# curl -fsSL https://raw.githubusercontent.com/miguelmsa1/smartedge-websocket-latency/main/install-and-run.sh | sudo EDGE_REGION=Bilbao AZURE_WS_URL=ws://IP_AZURE/ws bash
-IMAGE_REF="${IMAGE_REF:-ghcr.io/miguelmsa1/smartedge-websocket-latency:latest}"
-CONTAINER_NAME="${CONTAINER_NAME:-smartedge-websocket-latency}"
+# curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main/install-and-run.sh | sudo EDGE_REGION=Bilbao AZURE_WS_URL=ws://IP_AZURE/ws bash
+IMAGE_REF="${IMAGE_REF:-ghcr.io/miguelmsa1/edgebasico-latencia:latest}"
+CONTAINER_NAME="${CONTAINER_NAME:-edgebasico-latencia}"
 HOST_PORT="${HOST_PORT:-80}"
 EDGE_REGION="${EDGE_REGION:-Bilbao}"
 EDGE_GALICIA_WS_URL="${EDGE_GALICIA_WS_URL:-}"
@@ -17,7 +17,7 @@ SHOW_HIDDEN_HYPERSCALERS="${SHOW_HIDDEN_HYPERSCALERS:-false}"
 
 if [ "$(id -u)" -ne 0 ]; then
   echo "Run this installer as root. Recommended one-line usage:" >&2
-  echo "curl -fsSL https://raw.githubusercontent.com/miguelmsa1/smartedge-websocket-latency/main/install-and-run.sh | sudo EDGE_REGION=Bilbao AZURE_WS_URL=ws://IP_AZURE/ws bash" >&2
+  echo "curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main/install-and-run.sh | sudo EDGE_REGION=Bilbao AZURE_WS_URL=ws://IP_AZURE/ws bash" >&2
   exit 1
 fi
 
