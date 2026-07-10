@@ -7,6 +7,7 @@ IMAGE_REF="${IMAGE_REF:-ghcr.io/miguelmsa1/edgebasico-latencia:latest}"
 CONTAINER_NAME="${CONTAINER_NAME:-edgebasico-latencia}"
 HOST_PORT="${HOST_PORT:-80}"
 EDGE_REGION="${EDGE_REGION:-Bilbao}"
+EDGE_MADRID_WS_URL="${EDGE_MADRID_WS_URL:-}"
 EDGE_GALICIA_WS_URL="${EDGE_GALICIA_WS_URL:-}"
 EDGE_BARCELONA_WS_URL="${EDGE_BARCELONA_WS_URL:-}"
 EDGE_SEVILLA_WS_URL="${EDGE_SEVILLA_WS_URL:-}"
@@ -74,6 +75,7 @@ docker run -d \
   --restart unless-stopped \
   -p "${HOST_PORT}:80" \
   -e EDGE_REGION="${EDGE_REGION}" \
+  -e EDGE_MADRID_WS_URL="${EDGE_MADRID_WS_URL}" \
   -e EDGE_GALICIA_WS_URL="${EDGE_GALICIA_WS_URL}" \
   -e EDGE_BARCELONA_WS_URL="${EDGE_BARCELONA_WS_URL}" \
   -e EDGE_SEVILLA_WS_URL="${EDGE_SEVILLA_WS_URL}" \
@@ -89,6 +91,7 @@ echo "Container: ${CONTAINER_NAME}"
 echo "Image: ${IMAGE_REF}"
 echo "Region: ${EDGE_REGION}"
 echo "Port: ${HOST_PORT}"
+echo "Edge Madrid: ${EDGE_MADRID_WS_URL:-not configured}"
 echo "Edge Galicia: ${EDGE_GALICIA_WS_URL:-not configured}"
 echo "Edge Barcelona: ${EDGE_BARCELONA_WS_URL:-not configured}"
 echo "Edge Sevilla: ${EDGE_SEVILLA_WS_URL:-not configured}"

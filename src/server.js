@@ -8,6 +8,7 @@ const port = Number(process.env.PORT || 80);
 const edgeRegion = process.env.EDGE_REGION || 'Bilbao';
 const showHiddenHyperscalers = process.env.SHOW_HIDDEN_HYPERSCALERS === 'true';
 const targetEnv = [
+    { id: 'edge-madrid', label: process.env.EDGE_MADRID_LABEL || 'Edge Madrid', url: process.env.EDGE_MADRID_WS_URL, type: 'edge' },
     { id: 'edge-galicia', label: process.env.EDGE_GALICIA_LABEL || 'Edge Galicia', url: process.env.EDGE_GALICIA_WS_URL, type: 'edge' },
     { id: 'edge-barcelona', label: process.env.EDGE_BARCELONA_LABEL || 'Edge Barcelona', url: process.env.EDGE_BARCELONA_WS_URL, type: 'edge' },
     { id: 'edge-sevilla', label: process.env.EDGE_SEVILLA_LABEL || 'Edge Sevilla', url: process.env.EDGE_SEVILLA_WS_URL, type: 'edge' },

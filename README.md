@@ -9,7 +9,7 @@ La app:
 - Mide payloads binarios de 64, 512 y 1472 bytes.
 - Ejecuta 5 rondas de calentamiento descartadas y 50 rondas utiles por payload.
 - Muestra comparativa contra varios destinos WebSocket desde la misma pagina.
-- Muestra por defecto Edge Bilbao, Edge Galicia, Edge Barcelona, Edge Sevilla y Azure.
+- Muestra por defecto Edge Bilbao, Edge Madrid, Edge Galicia, Edge Barcelona, Edge Sevilla y Azure.
 - Muestra mediana media, minimo medio, maximo medio, jitter medio, diferencia frente al destino mas rapido y muestras validas.
 - Mantiene `EDGE_REGION` configurable por variable de entorno.
 
@@ -27,6 +27,7 @@ Uso recomendado para la instancia principal de Bilbao:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main/install-and-run.sh | sudo EDGE_REGION=Bilbao \
+  EDGE_MADRID_WS_URL=ws://IP_O_DNS_EDGE_MADRID/ws \
   EDGE_GALICIA_WS_URL=ws://IP_O_DNS_EDGE_GALICIA/ws \
   EDGE_BARCELONA_WS_URL=ws://IP_O_DNS_EDGE_BARCELONA/ws \
   EDGE_SEVILLA_WS_URL=ws://IP_O_DNS_EDGE_SEVILLA/ws \
@@ -52,6 +53,7 @@ Para que la web central compare contra otros nodos Edge y Azure, despliega esta 
 
 ```bash
 EDGE_REGION=Bilbao \
+EDGE_MADRID_WS_URL=ws://IP_O_DNS_EDGE_MADRID/ws \
 EDGE_GALICIA_WS_URL=ws://IP_O_DNS_EDGE_GALICIA/ws \
 EDGE_BARCELONA_WS_URL=ws://IP_O_DNS_EDGE_BARCELONA/ws \
 EDGE_SEVILLA_WS_URL=ws://IP_O_DNS_EDGE_SEVILLA/ws \
@@ -75,7 +77,7 @@ Esta variante publica directamente el proceso Node en el puerto 80 del host. No 
 
 ## Metodologia
 
-El navegador abre conexiones WebSocket en paralelo contra Edge Bilbao, que es el servidor que sirve la pagina, y contra cada backend configurado en `EDGE_GALICIA_WS_URL`, `EDGE_BARCELONA_WS_URL`, `EDGE_SEVILLA_WS_URL` y `AZURE_WS_URL`. Para cada destino y payload, ejecuta 5 rondas de calentamiento descartadas y despues envia 50 mensajes binarios, midiendo el tiempo entre `socket.send(...)` y la recepcion del eco del servidor con `performance.now()`.
+El navegador abre conexiones WebSocket en paralelo contra Edge Bilbao, que es el servidor que sirve la pagina, y contra cada backend configurado en `EDGE_MADRID_WS_URL`, `EDGE_GALICIA_WS_URL`, `EDGE_BARCELONA_WS_URL`, `EDGE_SEVILLA_WS_URL` y `AZURE_WS_URL`. Para cada destino y payload, ejecuta 5 rondas de calentamiento descartadas y despues envia 50 mensajes binarios, midiendo el tiempo entre `socket.send(...)` y la recepcion del eco del servidor con `performance.now()`.
 
 La demo mide el tiempo de ida y vuelta observado por el navegador sobre una conexion WebSocket real. Para comparar Smart Edge contra Azure con el menor ruido posible, despliega esta misma app en VMs equivalentes, usa la misma exposicion de red y, en Linux, puedes usar `docker-compose.host.yml` si quieres publicar directamente el proceso Node en el puerto 80 del host.
 

@@ -5,6 +5,7 @@ services:
     container_name: edgebasico-latencia
     environment:
       EDGE_REGION: "${EDGE_REGION:-Bilbao}"
+      EDGE_MADRID_WS_URL: "${EDGE_MADRID_WS_URL:-}"
       EDGE_GALICIA_WS_URL: "${EDGE_GALICIA_WS_URL:-}"
       EDGE_BARCELONA_WS_URL: "${EDGE_BARCELONA_WS_URL:-}"
       EDGE_SEVILLA_WS_URL: "${EDGE_SEVILLA_WS_URL:-}"

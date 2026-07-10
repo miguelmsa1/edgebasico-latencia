@@ -20,6 +20,7 @@ const payloadSizes = [
 const providerLogos = {
     smartedge: { src: '/logo_telefonica.png', alt: 'Telefonica' },
     'edge-bilbao': { src: '/logo_telefonica.png', alt: 'Telefonica' },
+    'edge-madrid': { src: '/logo_telefonica.png', alt: 'Telefonica' },
     'edge-galicia': { src: '/logo_telefonica.png', alt: 'Telefonica' },
     'edge-barcelona': { src: '/logo_telefonica.png', alt: 'Telefonica' },
     'edge-sevilla': { src: '/logo_telefonica.png', alt: 'Telefonica' },
@@ -31,6 +32,7 @@ const hiddenTargetIds = new Set(['aws', 'gcp']);
 
 const fallbackTargets = [
     { id: 'edge-bilbao', label: 'Edge Bilbao', url: sameOriginWebSocketUrl(), primary: true, type: 'edge', configured: true },
+    { id: 'edge-madrid', label: 'Edge Madrid', url: null, type: 'edge', configured: false },
     { id: 'edge-galicia', label: 'Edge Galicia', url: null, type: 'edge', configured: false },
     { id: 'edge-barcelona', label: 'Edge Barcelona', url: null, type: 'edge', configured: false },
     { id: 'edge-sevilla', label: 'Edge Sevilla', url: null, type: 'edge', configured: false },
