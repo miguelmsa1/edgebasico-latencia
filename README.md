@@ -109,7 +109,7 @@ El texto `$$region$$` se sustituye en runtime por `REGION` mediante `/app-config
 
 Por cada destino se descartan 5 rondas de calentamiento y se realizan 50 rondas útiles con mensajes de 64 B. El navegador mide mediante `performance.now()` el tiempo entre `socket.send()` y la recepción del eco.
 
-Es RTT de aplicación WebSocket observado por el navegador; no es ICMP ni una prueba de MTU/DF. Si el frontend usa HTTPS, los backends deben exponerse mediante `wss://`.
+Es RTT de aplicación WebSocket observado por el navegador y no constituye una prueba de MTU/DF. Si el frontend usa HTTPS, los backends deben exponerse mediante `wss://`.
 
 ## GitHub Actions y GHCR
 
