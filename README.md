@@ -30,8 +30,8 @@ Variables:
 - `BACKEND_PORT` — puerto público del backend local. Predeterminado: `8080`.
 - `BACKEND_INTERNAL_PORT` — puerto interno del contenedor backend. Predeterminado: `8080`.
 - `APP_EDGE_WS_URL` — URL WebSocket completa del backend local. Si se omite, el navegador usa el hostname del frontend y `BACKEND_PORT`.
-- `EDGE_MADRID_WS_URL` — predeterminado: `ws://213.4.160.147/ws`.
-- `AZURE_WS_URL` — predeterminado: `ws://68.221.73.138/ws`.
+- `EDGE_MADRID_WS_URL` — URL completa y puerto del backend de Madrid. Predeterminado: `ws://213.4.160.147:8080/ws`.
+- `AZURE_WS_URL` — URL completa y puerto del backend de Azure. Predeterminado: `ws://68.221.73.138:8080/ws`.
 - `FRONTEND_IMAGE` — predeterminado: `ghcr.io/miguelmsa1/edgebasico-latencia-frontend:latest`.
 - `BACKEND_IMAGE` — predeterminado: `ghcr.io/miguelmsa1/edgebasico-latencia-backend:latest`.
 - `FRONTEND_CONTAINER` / `BACKEND_CONTAINER` — nombres de los contenedores.
@@ -54,20 +54,26 @@ Madrid:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main/install-backend.sh \
-  | sudo BACKEND_NAME="Nodo Edge Madrid" BACKEND_PORT=80 bash
+  | sudo BACKEND_PORT=8080 bash
 ```
 
 Azure:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main/install-backend.sh \
-  | sudo BACKEND_NAME="Azure" BACKEND_PORT=80 bash
+  | sudo BACKEND_PORT=8080 bash
+```
+
+Después, el frontend debe apuntar exactamente a esos puertos:
+
+```bash
+EDGE_MADRID_WS_URL=ws://213.4.160.147:8080/ws
+AZURE_WS_URL=ws://68.221.73.138:8080/ws
 ```
 
 Variables:
 
-- `BACKEND_NAME` — nombre visible en la página de estado.
-- `BACKEND_PORT` — puerto público. Predeterminado: `8080`.
+- `BACKEND_PORT` — puerto público, visible en la página de estado y usado por el frontend en la URL WebSocket. Predeterminado: `8080`.
 - `BACKEND_INTERNAL_PORT` — puerto interno. Predeterminado: `8080`.
 - `BACKEND_IMAGE` — imagen GHCR del backend.
 - `BACKEND_CONTAINER` — nombre del contenedor.
@@ -75,7 +81,7 @@ Variables:
 
 Endpoints del backend:
 
-- `/` — página de estado y contadores.
+- `/` — página de estado, puerto publicado y contadores.
 - `/healthz` — health check JSON.
 - `/stats.json` — estadísticas JSON.
 - `/ws` — eco WebSocket.

@@ -2,7 +2,7 @@ async function refresh() {
     try {
         const response = await fetch('/stats.json', { cache: 'no-store' });
         const stats = await response.json();
-        document.getElementById('backend-name').textContent = stats.name || 'Backend de latencia';
+        document.getElementById('port').textContent = stats.port;
         document.getElementById('tests').textContent = stats.tests.toLocaleString('es-ES');
         document.getElementById('connections').textContent = stats.websocketConnections.toLocaleString('es-ES');
         document.getElementById('active').textContent = stats.activeConnections.toLocaleString('es-ES');

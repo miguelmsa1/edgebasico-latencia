@@ -5,7 +5,7 @@ const path = require('path');
 
 const publicDir = path.join(__dirname, '..', 'public');
 const port = Number(process.env.PORT || process.env.BACKEND_PORT || 8080);
-const backendName = process.env.BACKEND_NAME || 'Backend de latencia';
+const publicPort = Number(process.env.PUBLIC_BACKEND_PORT || port);
 const startedAt = new Date();
 const stats = {
     websocketConnections: 0,
@@ -29,11 +29,11 @@ function sendJson(response, payload) {
 function serveHttp(request, response) {
     const requestUrl = new URL(request.url, 'http://localhost');
     if (requestUrl.pathname === '/healthz') {
-        sendJson(response, { status: 'ok', name: backendName, startedAt: startedAt.toISOString() });
+        sendJson(response, { status: 'ok', port: publicPort, startedAt: startedAt.toISOString() });
         return;
     }
     if (requestUrl.pathname === '/stats.json') {
-        sendJson(response, { name: backendName, ...stats, startedAt: startedAt.toISOString(), uptimeSeconds: Math.floor(process.uptime()) });
+        sendJson(response, { port: publicPort, ...stats, startedAt: startedAt.toISOString(), uptimeSeconds: Math.floor(process.uptime()) });
         return;
     }
     const relative = requestUrl.pathname === '/' ? 'index.html' : requestUrl.pathname.replace(/^\/+/, '');
@@ -181,5 +181,5 @@ server.on('upgrade', (request, socket) => {
     handleWebSocket(request, socket);
 });
 server.listen(port, '0.0.0.0', () => {
-    console.log(`${backendName} listening on port ${port}`);
+    console.log(`Hello Edge latency backend listening on port ${port}`);
 });

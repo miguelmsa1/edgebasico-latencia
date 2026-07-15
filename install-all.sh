@@ -17,8 +17,8 @@ BACKEND_CONTAINER="${BACKEND_CONTAINER:-hello-edge-backend}"
 
 # Target URLs shown by the frontend
 APP_EDGE_WS_URL="${APP_EDGE_WS_URL:-}"
-EDGE_MADRID_WS_URL="${EDGE_MADRID_WS_URL:-ws://213.4.160.147/ws}"
-AZURE_WS_URL="${AZURE_WS_URL:-ws://68.221.73.138/ws}"
+EDGE_MADRID_WS_URL="${EDGE_MADRID_WS_URL:-ws://213.4.160.147:8080/ws}"
+AZURE_WS_URL="${AZURE_WS_URL:-ws://68.221.73.138:8080/ws}"
 
 if [ -z "${REGION}" ]; then
   echo "ERROR: REGION es obligatoria. Ejemplo: REGION=Bilbao" >&2
@@ -67,7 +67,7 @@ docker run -d \
   --restart unless-stopped \
   -p "${BACKEND_PORT}:${BACKEND_INTERNAL_PORT}" \
   -e BACKEND_PORT="${BACKEND_INTERNAL_PORT}" \
-  -e BACKEND_NAME="Nodo Edge ${REGION}" \
+  -e PUBLIC_BACKEND_PORT="${BACKEND_PORT}" \
   "${BACKEND_IMAGE}"
 
 docker run -d \

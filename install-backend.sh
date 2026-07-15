@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Identificador visible en la página de estado. Ejemplos: "Nodo Edge Madrid", "Azure".
-BACKEND_NAME="${BACKEND_NAME:-Backend de latencia}"
 BACKEND_IMAGE="${BACKEND_IMAGE:-ghcr.io/miguelmsa1/edgebasico-latencia-backend:latest}"
 BACKEND_PORT="${BACKEND_PORT:-8080}"
 BACKEND_INTERNAL_PORT="${BACKEND_INTERNAL_PORT:-8080}"
@@ -48,11 +46,11 @@ docker run -d \
   --restart unless-stopped \
   -p "${BACKEND_PORT}:${BACKEND_INTERNAL_PORT}" \
   -e BACKEND_PORT="${BACKEND_INTERNAL_PORT}" \
-  -e BACKEND_NAME="${BACKEND_NAME}" \
+  -e PUBLIC_BACKEND_PORT="${BACKEND_PORT}" \
   "${BACKEND_IMAGE}"
 
 echo
-echo "${BACKEND_NAME} desplegado correctamente."
+echo "Backend de latencia desplegado correctamente."
 echo "Estado: http://<IP>:${BACKEND_PORT}/"
 echo "Health: http://<IP>:${BACKEND_PORT}/healthz"
 echo "WebSocket: ws://<IP>:${BACKEND_PORT}/ws"
