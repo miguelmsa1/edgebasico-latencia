@@ -33,7 +33,7 @@ Variables:
 - `BACKEND_INTERNAL_PORT` — puerto interno del contenedor backend. Predeterminado: `8080`.
 - `APP_EDGE_WS_URL` — URL WebSocket completa del backend local. Si se omite, el navegador usa el hostname del frontend y `BACKEND_PORT`.
 - `EDGE_MADRID_WS_URL` — URL completa y puerto del futuro backend de Madrid. Sin valor predeterminado; mientras esté vacía, la fila muestra `No configurado`.
-- `AZURE_WS_URL` — URL completa y puerto del backend de Azure. Predeterminado: `ws://68.221.73.138:8080/ws`.
+- `AZURE_WS_URL` — URL completa y puerto del backend de Azure. Predeterminado: `ws://158.158.8.244:8080/ws`.
 - `FRONTEND_IMAGE` — predeterminado: `ghcr.io/miguelmsa1/edgebasico-latencia-frontend:latest`.
 - `BACKEND_IMAGE` — predeterminado: `ghcr.io/miguelmsa1/edgebasico-latencia-backend:latest`.
 - `FRONTEND_CONTAINER` / `BACKEND_CONTAINER` — nombres de los contenedores.
@@ -66,7 +66,7 @@ Lo que diferencia cada destino es la URL configurada al desplegar el frontend. A
 EDGE_MADRID_WS_URL=ws://<IP-MADRID>:8080/ws
 
 # Valor predeterminado actual de Azure:
-AZURE_WS_URL=ws://68.221.73.138:8080/ws
+AZURE_WS_URL=ws://158.158.8.244:8080/ws
 ```
 
 La IP `213.4.160.147` corresponde a Coruña y no se configura como Madrid ni como destino remoto predeterminado. Un usuario puede levantar allí —o en cualquier otra región— su propia instancia con `install-all.sh`; ese despliegue aparecerá como la fila local `Nodo Edge <REGION>`.

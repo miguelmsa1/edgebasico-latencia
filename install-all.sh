@@ -18,7 +18,7 @@ BACKEND_CONTAINER="${BACKEND_CONTAINER:-hello-edge-backend}"
 # Target URLs shown by the frontend
 APP_EDGE_WS_URL="${APP_EDGE_WS_URL:-}"
 EDGE_MADRID_WS_URL="${EDGE_MADRID_WS_URL:-}"
-AZURE_WS_URL="${AZURE_WS_URL:-ws://68.221.73.138:8080/ws}"
+AZURE_WS_URL="${AZURE_WS_URL:-ws://158.158.8.244:8080/ws}"
 
 if [ -z "${REGION}" ]; then
   echo "ERROR: REGION es obligatoria. Ejemplo: REGION=Bilbao" >&2

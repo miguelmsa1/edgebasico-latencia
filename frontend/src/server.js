@@ -9,7 +9,7 @@ const localBackendPort = Number(process.env.LOCAL_BACKEND_PORT || 8080);
 // Madrid remains visible in the comparison table, but has no endpoint until
 // that measurement node is deployed explicitly.
 const madridUrl = process.env.EDGE_MADRID_WS_URL || '';
-const azureUrl = process.env.AZURE_WS_URL || 'ws://68.221.73.138:8080/ws';
+const azureUrl = process.env.AZURE_WS_URL || 'ws://158.158.8.244:8080/ws';
 
 const contentTypes = {
     '.css': 'text/css; charset=utf-8',

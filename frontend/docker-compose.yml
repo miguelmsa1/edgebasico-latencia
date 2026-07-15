@@ -8,7 +8,7 @@ services:
       APP_EDGE_WS_URL: "${APP_EDGE_WS_URL:-}"
       LOCAL_BACKEND_PORT: "${LOCAL_BACKEND_PORT:-8080}"
       EDGE_MADRID_WS_URL: "${EDGE_MADRID_WS_URL:-}"
-      AZURE_WS_URL: "${AZURE_WS_URL:-ws://68.221.73.138:8080/ws}"
+      AZURE_WS_URL: "${AZURE_WS_URL:-ws://158.158.8.244:8080/ws}"
       PORT: "80"
     ports:
       - "${FRONTEND_PORT:-80}:80"
