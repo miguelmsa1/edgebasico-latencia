@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello Edge! · Backend</title>
+    <style>
+        body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #071b3d; color: #fff; font-family: Arial, sans-serif; }
+        main { width: min(560px, calc(100vw - 32px)); padding: 32px; border: 1px solid #284a7c; border-radius: 12px; background: #0b2857; }
+        h1 { margin-top: 0; } .ok { color: #62dc9c; font-weight: 700; }
+        dl { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; } dt { color: #a9c8ef; } dd { margin: 0; text-align: right; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <main>
+        <h1 id="backend-name">Backend de latencia</h1>
+        <p class="ok">● Servicio levantado</p>
+        <p>Este proceso responde a los tests WebSocket del frontend. No contiene una copia de la demo.</p>
+        <dl>
+            <dt>Tests realizados</dt><dd id="tests">0</dd>
+            <dt>Conexiones totales</dt><dd id="connections">0</dd>
+            <dt>Conexiones activas</dt><dd id="active">0</dd>
+            <dt>Bytes devueltos</dt><dd id="bytes">0</dd>
+            <dt>Último test</dt><dd id="last">Todavía ninguno</dd>
+        </dl>
+    </main>
+    <script src="/status.js"></script>
+</body>
+</html>

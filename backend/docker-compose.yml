@@ -1,0 +1,11 @@
+services:
+  backend:
+    build: .
+    image: ghcr.io/miguelmsa1/edgebasico-latencia-backend:latest
+    container_name: hello-edge-backend
+    environment:
+      BACKEND_PORT: "${BACKEND_INTERNAL_PORT:-8080}"
+      BACKEND_NAME: "${BACKEND_NAME:-Backend de latencia}"
+    ports:
+      - "${BACKEND_PORT:-8080}:${BACKEND_INTERNAL_PORT:-8080}"
+    restart: unless-stopped

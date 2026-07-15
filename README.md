@@ -1,84 +1,119 @@
-# Smart Edge WebSocket Latency Demo
+# Hello Edge! · Demo de latencia WebSocket
 
-Variante publica de la demo para medir latencia extremo a extremo desde navegador mediante WebSocket.
+Repositorio ordenado en dos componentes:
 
-La app:
+- `frontend/`: web que despliega el usuario de la demo.
+- `backend/`: eco WebSocket independiente con página de estado y contador de tests.
 
-- Sirve HTML/CSS/JS desde un backend Node.js.
-- Expone WebSocket en `/ws`.
-- Mide payloads binarios de 64, 512 y 1472 bytes.
-- Ejecuta 5 rondas de calentamiento descartadas y 50 rondas utiles por payload.
-- Muestra comparativa contra varios destinos WebSocket desde la misma pagina.
-- Muestra por defecto Edge Bilbao, Edge Madrid, Edge Galicia, Edge Barcelona, Edge Sevilla y Azure.
-- Muestra mediana media, minimo medio, maximo medio, jitter medio, diferencia frente al destino mas rapido y muestras validas.
-- Mantiene `EDGE_REGION` configurable por variable de entorno.
+El navegador abre directamente tres conexiones: nodo Edge donde se instancia la app, nodo Edge Madrid y Azure.
 
-## Levantar con Docker Compose
+## Instaladores de un solo comando
 
-```bash
-docker compose up -d --build
-```
+Hay únicamente dos instaladores raíz:
 
-## Despliegue en una VM con un unico comando
+- `install-all.sh`: despliega frontend y backend en la misma máquina.
+- `install-backend.sh`: despliega solo el backend, pensado para Madrid, Azure u otro destino remoto.
 
-El fichero `install-and-run.sh` prepara una VM Ubuntu, instala Docker, abre SSH y el puerto HTTP elegido en UFW, descarga la imagen Docker publicada y arranca el contenedor con la configuracion de targets.
+### 1. Frontend + backend
 
-Uso recomendado para la instancia principal de Bilbao:
+`REGION` es obligatoria y determina tanto el texto de la web como la fila local de la tabla: `Nodo Edge <REGION>`.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main/install-and-run.sh | sudo EDGE_REGION=Bilbao \
-  EDGE_MADRID_WS_URL=ws://IP_O_DNS_EDGE_MADRID/ws \
-  EDGE_GALICIA_WS_URL=ws://IP_O_DNS_EDGE_GALICIA/ws \
-  EDGE_BARCELONA_WS_URL=ws://IP_O_DNS_EDGE_BARCELONA/ws \
-  EDGE_SEVILLA_WS_URL=ws://IP_O_DNS_EDGE_SEVILLA/ws \
-  AZURE_WS_URL=ws://IP_O_DNS_AZURE/ws \
-  bash
+curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main/install-all.sh \
+  | sudo REGION=Bilbao BACKEND_PORT=8080 bash
 ```
 
-Uso recomendado para nodos destino, incluida Azure, si solo deben responder al eco WebSocket:
+Variables:
+
+- `REGION` — **obligatoria**. Ubicación del despliegue: `Bilbao`, `Sevilla`, etc.
+- `FRONTEND_PORT` — puerto HTTP del frontend. Predeterminado: `80`.
+- `BACKEND_PORT` — puerto público del backend local. Predeterminado: `8080`.
+- `BACKEND_INTERNAL_PORT` — puerto interno del contenedor backend. Predeterminado: `8080`.
+- `APP_EDGE_WS_URL` — URL WebSocket completa del backend local. Si se omite, el navegador usa el hostname del frontend y `BACKEND_PORT`.
+- `EDGE_MADRID_WS_URL` — predeterminado: `ws://213.4.160.147/ws`.
+- `AZURE_WS_URL` — predeterminado: `ws://68.221.73.138/ws`.
+- `FRONTEND_IMAGE` — predeterminado: `ghcr.io/miguelmsa1/edgebasico-latencia-frontend:latest`.
+- `BACKEND_IMAGE` — predeterminado: `ghcr.io/miguelmsa1/edgebasico-latencia-backend:latest`.
+- `FRONTEND_CONTAINER` / `BACKEND_CONTAINER` — nombres de los contenedores.
+- `REGISTRY_USER` y `REGISTRY_TOKEN` — opcionales si los packages GHCR no son públicos.
+
+Ejemplo con URL local explícita:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main/install-and-run.sh | sudo EDGE_REGION=Azure bash
+curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main/install-all.sh \
+  | sudo REGION=Bilbao \
+      FRONTEND_PORT=80 \
+      BACKEND_PORT=8080 \
+      APP_EDGE_WS_URL=ws://213.4.160.218:8080/ws \
+      bash
 ```
 
-La imagen esperada por defecto es `ghcr.io/miguelmsa1/edgebasico-latencia:latest`. Si se publica con otro nombre, usa `IMAGE_REF=...` en el comando.
+### 2. Solo backend
 
-Variables utiles:
+Madrid:
 
 ```bash
-EDGE_REGION=Bilbao HOST_PORT=80 docker compose up -d --build
+curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main/install-backend.sh \
+  | sudo BACKEND_NAME="Nodo Edge Madrid" BACKEND_PORT=80 bash
 ```
 
-Para que la web central compare contra otros nodos Edge y Azure, despliega esta misma app en cada backend y configura en la instancia principal las URL WebSocket publicas:
+Azure:
 
 ```bash
-EDGE_REGION=Bilbao \
-EDGE_MADRID_WS_URL=ws://IP_O_DNS_EDGE_MADRID/ws \
-EDGE_GALICIA_WS_URL=ws://IP_O_DNS_EDGE_GALICIA/ws \
-EDGE_BARCELONA_WS_URL=ws://IP_O_DNS_EDGE_BARCELONA/ws \
-EDGE_SEVILLA_WS_URL=ws://IP_O_DNS_EDGE_SEVILLA/ws \
-AZURE_WS_URL=ws://IP_O_DNS_AZURE/ws \
-docker compose up -d --build
+curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main/install-backend.sh \
+  | sudo BACKEND_NAME="Azure" BACKEND_PORT=80 bash
 ```
 
-AWS y GCP siguen soportados en la configuracion, pero quedan ocultos por defecto en la tabla. Para volver a mostrarlos, configura `AWS_WS_URL`/`GCP_WS_URL` y lanza la instancia principal con `SHOW_HIDDEN_HYPERSCALERS=true`.
+Variables:
 
-Si la web principal se sirve por HTTPS, las URL remotas deben ser `wss://.../ws`; los navegadores suelen bloquear WebSocket inseguro `ws://` desde una pagina HTTPS.
+- `BACKEND_NAME` — nombre visible en la página de estado.
+- `BACKEND_PORT` — puerto público. Predeterminado: `8080`.
+- `BACKEND_INTERNAL_PORT` — puerto interno. Predeterminado: `8080`.
+- `BACKEND_IMAGE` — imagen GHCR del backend.
+- `BACKEND_CONTAINER` — nombre del contenedor.
+- `REGISTRY_USER` y `REGISTRY_TOKEN` — opcionales para GHCR privado.
 
-En las VMs o nodos remotos puedes levantar la misma app sin configurar targets adicionales: solo necesitan exponer `/ws` hacia Internet.
+Endpoints del backend:
 
-En Linux, si quieres reducir la latencia adicional de la publicacion/NAT de Docker, puedes levantar la variante con red host:
+- `/` — página de estado y contadores.
+- `/healthz` — health check JSON.
+- `/stats.json` — estadísticas JSON.
+- `/ws` — eco WebSocket.
+
+## Docker Compose local
 
 ```bash
-docker compose -f docker-compose.host.yml up -d --build
+REGION=Bilbao FRONTEND_PORT=80 BACKEND_PORT=8080 docker compose up -d --build
 ```
 
-Esta variante publica directamente el proceso Node en el puerto 80 del host. No usa `HOST_PORT`; si el puerto 80 ya esta ocupado, hay que parar el servicio que lo use o cambiar `PORT`.
+## Frontend
 
-## Metodologia
+El frontend muestra:
 
-El navegador abre conexiones WebSocket en paralelo contra Edge Bilbao, que es el servidor que sirve la pagina, y contra cada backend configurado en `EDGE_MADRID_WS_URL`, `EDGE_GALICIA_WS_URL`, `EDGE_BARCELONA_WS_URL`, `EDGE_SEVILLA_WS_URL` y `AZURE_WS_URL`. Para cada destino y payload, ejecuta 5 rondas de calentamiento descartadas y despues envia 50 mensajes binarios, midiendo el tiempo entre `socket.send(...)` y la recepcion del eco del servidor con `performance.now()`.
+- IP detectada.
+- Ubicación / operador.
+- Mediana de 64 B del nodo local.
+- Ubicación más rápida.
+- Tabla con `Nodo Edge <REGION>`, `Nodo Edge Madrid` y `Azure`.
+- Columnas: mediana, vs. más rápido, min/max y jitter.
 
-La demo mide el tiempo de ida y vuelta observado por el navegador sobre una conexion WebSocket real. Para comparar Smart Edge contra Azure con el menor ruido posible, despliega esta misma app en VMs equivalentes, usa la misma exposicion de red y, en Linux, puedes usar `docker-compose.host.yml` si quieres publicar directamente el proceso Node en el puerto 80 del host.
+El texto `$$region$$` se sustituye en runtime por `REGION` mediante `/app-config.json`.
 
-Para comparar Smart Edge contra Azure de forma homogenea, despliega esta misma app en una VM equivalente y configura su URL WebSocket en la instancia principal. Evita mezclar esta medicion con Blob Storage, CDN, API Gateway, App Service, Cloud Run u otros PaaS si quieres una comparativa IaaS limpia.
+## Método de medición
+
+Por cada destino se descartan 5 rondas de calentamiento y se realizan 50 rondas útiles con mensajes de 64 B. El navegador mide mediante `performance.now()` el tiempo entre `socket.send()` y la recepción del eco.
+
+Es RTT de aplicación WebSocket observado por el navegador; no es ICMP ni una prueba de MTU/DF. Si el frontend usa HTTPS, los backends deben exponerse mediante `wss://`.
+
+## GitHub Actions y GHCR
+
+`.github/workflows/publish-images.yml` ejecuta en cada push a `main`:
+
+1. Validación de JavaScript, instaladores y Compose.
+2. Construcción independiente de `frontend/` y `backend/`.
+3. Publicación de:
+   - `ghcr.io/miguelmsa1/edgebasico-latencia-frontend:latest`
+   - `ghcr.io/miguelmsa1/edgebasico-latencia-backend:latest`
+4. Publicación adicional de una etiqueta con el SHA del commit.
+
+No requiere un token personal: utiliza `GITHUB_TOKEN` con permiso `packages: write`. Para que los instaladores funcionen sin credenciales, ambos packages deben quedar públicos en GHCR.

@@ -1,15 +1,11 @@
 FROM node:22-alpine
 
-ENV EDGE_REGION=Bilbao
-ENV PORT=80
-
+ENV BACKEND_PORT=8080
+ENV BACKEND_NAME="Backend de latencia"
 WORKDIR /app
-
 COPY src/ ./src/
 COPY public/ ./public/
-
 RUN chmod -R a+rX /app
 
-EXPOSE 80
-
+EXPOSE 8080
 CMD ["node", "src/server.js"]

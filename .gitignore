@@ -1,0 +1,4 @@
+legacy-public/
+legacy-src/
+node_modules/
+.env

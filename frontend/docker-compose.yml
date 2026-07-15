@@ -1,26 +1,15 @@
 services:
   frontend:
-    build: ./frontend
+    build: .
     image: ghcr.io/miguelmsa1/edgebasico-latencia-frontend:latest
     container_name: hello-edge-frontend
     environment:
       REGION: "${REGION:-Bilbao}"
-      LOCAL_BACKEND_PORT: "${BACKEND_PORT:-8080}"
       APP_EDGE_WS_URL: "${APP_EDGE_WS_URL:-}"
+      LOCAL_BACKEND_PORT: "${LOCAL_BACKEND_PORT:-8080}"
       EDGE_MADRID_WS_URL: "${EDGE_MADRID_WS_URL:-ws://213.4.160.147/ws}"
       AZURE_WS_URL: "${AZURE_WS_URL:-ws://68.221.73.138/ws}"
       PORT: "80"
     ports:
       - "${FRONTEND_PORT:-80}:80"
-    restart: unless-stopped
-
-  backend:
-    build: ./backend
-    image: ghcr.io/miguelmsa1/edgebasico-latencia-backend:latest
-    container_name: hello-edge-backend
-    environment:
-      BACKEND_PORT: "${BACKEND_INTERNAL_PORT:-8080}"
-      BACKEND_NAME: "Nodo Edge ${REGION:-Bilbao}"
-    ports:
-      - "${BACKEND_PORT:-8080}:${BACKEND_INTERNAL_PORT:-8080}"
     restart: unless-stopped

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello Edge!</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <main>
+        <img class="logo" src="/logo_telefonica.png" alt="Telefónica">
+        <h1>Hello Edge!</h1>
+        <p class="subtitle">Estás conectado vía internet al nodo de <strong id="edge-region">$$region$$</strong></p>
+
+        <section class="tools" aria-label="Medición de RTT WebSocket">
+            <button id="run-test" type="button">Lanzar test de latencia</button>
+            <p class="status" id="status"></p>
+
+            <div class="results" aria-live="polite">
+                <article class="metric">
+                    <p class="label">IP detectada</p>
+                    <p class="value" id="client-ip">Pendiente</p>
+                </article>
+                <article class="metric">
+                    <p class="label">Ubicación / operador</p>
+                    <p class="value" id="network">Pendiente</p>
+                </article>
+                <article class="metric">
+                    <p class="label">Mediana · 64 B</p>
+                    <p class="value" id="summary-median">Pendiente</p>
+                </article>
+                <article class="metric">
+                    <p class="label">Ubicación más rápida</p>
+                    <p class="value" id="summary-fastest">Pendiente</p>
+                </article>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Destino</th>
+                            <th>Mediana</th>
+                            <th>Vs más rápido</th>
+                            <th>Min / max</th>
+                            <th>Jitter</th>
+                        </tr>
+                    </thead>
+                    <tbody id="result-body"></tbody>
+                </table>
+            </div>
+
+            <p class="note">Método de medición: 5 rondas de calentamiento descartadas y 50 rondas útiles por destino con paquetes de 64 B. El navegador mide RTT de aplicación WebSocket entre envío y eco recibido; no es ICMP.</p>
+        </section>
+    </main>
+    <script src="/app.js"></script>
+</body>
+</html>
