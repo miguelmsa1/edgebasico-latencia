@@ -121,7 +121,9 @@ function renderTargetCell(target) {
 function renderPendingRows() {
     resultBody.innerHTML = targets.map((target) => (
         '<tr data-target="' + escapeHtml(target.id) + '">' + renderTargetCell(target) +
-        '<td>Pendiente</td><td>Pendiente</td><td>Pendiente</td><td>Pendiente</td></tr>'
+        (target.url
+            ? '<td>Pendiente</td><td>Pendiente</td><td>Pendiente</td><td>Pendiente</td>'
+            : '<td>No configurado</td><td>—</td><td>—</td><td>—</td>') + '</tr>'
     )).join('');
 }
 
@@ -134,9 +136,14 @@ function updateProgressRow(id, lastLatency) {
     row.children[4].textContent = 'Midiendo…';
 }
 
-function updateSummaryRow(id, summary, fastest) {
+function updateSummaryRow(id, summary, fastest, unconfigured = false) {
     const row = resultBody.querySelector('tr[data-target="' + id + '"]');
     if (!row) return;
+    if (unconfigured) {
+        row.children[1].textContent = 'No configurado';
+        for (let i = 2; i < row.children.length; i += 1) row.children[i].textContent = '—';
+        return;
+    }
     if (!summary) {
         for (let i = 1; i < row.children.length; i += 1) row.children[i].textContent = 'Error';
         return;
@@ -236,6 +243,7 @@ async function runTest() {
 
     try {
         const results = await Promise.all(targets.map(async (target) => {
+            if (!target.url) return { ...target, summary: null, unconfigured: true };
             try { return await measureTarget(target); }
             catch (error) {
                 console.warn('No se pudo medir ' + target.label, error);
@@ -245,7 +253,9 @@ async function runTest() {
         const fastest = results.filter((result) => result.summary).reduce((best, result) => (
             !best || result.summary.median < best.summary.median ? result : best
         ), null);
-        for (const result of results) updateSummaryRow(result.id, result.summary, fastest && fastest.summary);
+        for (const result of results) {
+            updateSummaryRow(result.id, result.summary, fastest && fastest.summary, result.unconfigured);
+        }
         const appEdge = results.find((result) => result.id === 'app-edge' && result.summary);
         summaryMedianEl.textContent = appEdge ? formatLatency(appEdge.summary.median) : 'No disponible';
         summaryFastestEl.textContent = fastest

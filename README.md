@@ -5,14 +5,16 @@ Repositorio ordenado en dos componentes:
 - `frontend/`: web que despliega el usuario de la demo.
 - `backend/`: eco WebSocket independiente con página de estado y contador de tests.
 
-El navegador abre directamente tres conexiones: nodo Edge donde se instancia la app, nodo Edge Madrid y Azure.
+El navegador compara tres filas: nodo Edge donde se instancia la app, nodo Edge Madrid y Azure. Madrid permanece visible como `No configurado` hasta que exista un endpoint real; ningún nodo de usuario —incluido Coruña— se utiliza como destino predeterminado.
 
-## Instaladores de un solo comando
+## Qué hacen los instaladores
 
-Hay únicamente dos instaladores raíz:
+Hay únicamente dos instaladores raíz. Ambos están preparados para Ubuntu/Debian, deben ejecutarse como `root` y son repetibles: si los contenedores ya existen, los reemplazan por la versión indicada.
 
-- `install-all.sh`: despliega frontend y backend en la misma máquina.
-- `install-backend.sh`: despliega solo el backend, pensado para Madrid, Azure u otro destino remoto.
+- `install-all.sh`: instala Docker si falta, permite los puertos del frontend y backend en UFW, descarga las dos imágenes y despliega frontend + backend en la misma máquina. `REGION` define la fila local `Nodo Edge <REGION>` y el frontend construye la URL local con el hostname público y `BACKEND_PORT`.
+- `install-backend.sh`: instala Docker si falta, permite el puerto del backend en UFW, descarga únicamente la imagen backend y despliega el eco WebSocket con su página de estado. El mismo comando sirve para Madrid, Azure o un nodo levantado por un usuario: la ubicación no se configura en el backend, sino en la URL que recibe el frontend.
+
+Los scripts permiten autenticación opcional contra GHCR mediante `REGISTRY_USER` y `REGISTRY_TOKEN`, pero no es necesaria cuando las imágenes son públicas. El grupo de seguridad de OpenStack debe permitir también los puertos publicados; UFW solo configura el firewall de la máquina.
 
 ### 1. Frontend + backend
 
@@ -30,7 +32,7 @@ Variables:
 - `BACKEND_PORT` — puerto público del backend local. Predeterminado: `8080`.
 - `BACKEND_INTERNAL_PORT` — puerto interno del contenedor backend. Predeterminado: `8080`.
 - `APP_EDGE_WS_URL` — URL WebSocket completa del backend local. Si se omite, el navegador usa el hostname del frontend y `BACKEND_PORT`.
-- `EDGE_MADRID_WS_URL` — URL completa y puerto del backend de Madrid. Predeterminado: `ws://213.4.160.147:8080/ws`.
+- `EDGE_MADRID_WS_URL` — URL completa y puerto del futuro backend de Madrid. Sin valor predeterminado; mientras esté vacía, la fila muestra `No configurado`.
 - `AZURE_WS_URL` — URL completa y puerto del backend de Azure. Predeterminado: `ws://68.221.73.138:8080/ws`.
 - `FRONTEND_IMAGE` — predeterminado: `ghcr.io/miguelmsa1/edgebasico-latencia-frontend:latest`.
 - `BACKEND_IMAGE` — predeterminado: `ghcr.io/miguelmsa1/edgebasico-latencia-backend:latest`.
@@ -50,26 +52,24 @@ curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main
 
 ### 2. Solo backend
 
-Madrid:
+El comando es intencionadamente el mismo para cualquier ubicación porque el backend es un eco WebSocket neutro y no necesita conocer si está en Madrid, Azure o un nodo de usuario:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main/install-backend.sh \
   | sudo BACKEND_PORT=8080 bash
 ```
 
-Azure:
+Lo que diferencia cada destino es la URL configurada al desplegar el frontend. Azure ya tiene un valor predeterminado; Madrid queda pendiente:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main/install-backend.sh \
-  | sudo BACKEND_PORT=8080 bash
-```
+# Cuando se despliegue el nodo de Madrid:
+EDGE_MADRID_WS_URL=ws://<IP-MADRID>:8080/ws
 
-Después, el frontend debe apuntar exactamente a esos puertos:
-
-```bash
-EDGE_MADRID_WS_URL=ws://213.4.160.147:8080/ws
+# Valor predeterminado actual de Azure:
 AZURE_WS_URL=ws://68.221.73.138:8080/ws
 ```
+
+La IP `213.4.160.147` corresponde a Coruña y no se configura como Madrid ni como destino remoto predeterminado. Un usuario puede levantar allí —o en cualquier otra región— su propia instancia con `install-all.sh`; ese despliegue aparecerá como la fila local `Nodo Edge <REGION>`.
 
 Variables:
 
@@ -122,4 +122,10 @@ Es RTT de aplicación WebSocket observado por el navegador; no es ICMP ni una pr
    - `ghcr.io/miguelmsa1/edgebasico-latencia-backend:latest`
 4. Publicación adicional de una etiqueta con el SHA del commit.
 
-No requiere un token personal: utiliza `GITHUB_TOKEN` con permiso `packages: write`. Para que los instaladores funcionen sin credenciales, ambos packages deben quedar públicos en GHCR.
+### Publicación y seguridad
+
+Las imágenes no las publica directamente Clovo. Clovo realiza el `push` del código mediante una clave SSH autorizada; después, GitHub Actions construye y publica las imágenes usando un `GITHUB_TOKEN` efímero generado para esa ejecución, limitado a `contents: read` y `packages: write`. No se utiliza ni se almacena un token personal.
+
+Que los packages sean públicos no concede permisos de escritura: cualquier persona puede descargar e inspeccionar las imágenes, pero no sustituirlas. En este proyecto es coherente con que el repositorio y la demo sean públicos y permite que los instaladores funcionen sin credenciales. Los Dockerfiles solo incorporan `src/` y `public/`; `REGISTRY_TOKEN` se entrega a `docker login` por entrada estándar y no se incluye en las imágenes.
+
+El riesgo relevante no es la descarga pública, sino publicar una imagen manipulada bajo `latest` si alguien consigue introducir código en `main` o comprometer una GitHub Action. Conviene proteger la rama `main`, revisar los cambios antes de integrarlos y mantener actualizadas —o fijadas por SHA— las acciones de terceros. Si en el futuro el código o las imágenes contienen componentes privados, los packages deberán pasar a privados y los instaladores requerirán credenciales de solo lectura.

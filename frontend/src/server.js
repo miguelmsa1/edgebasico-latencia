@@ -6,7 +6,9 @@ const publicDir = path.join(__dirname, '..', 'public');
 const port = Number(process.env.PORT || 80);
 const region = process.env.REGION || process.env.EDGE_REGION || 'Bilbao';
 const localBackendPort = Number(process.env.LOCAL_BACKEND_PORT || 8080);
-const madridUrl = process.env.EDGE_MADRID_WS_URL || 'ws://213.4.160.147:8080/ws';
+// Madrid remains visible in the comparison table, but has no endpoint until
+// that measurement node is deployed explicitly.
+const madridUrl = process.env.EDGE_MADRID_WS_URL || '';
 const azureUrl = process.env.AZURE_WS_URL || 'ws://68.221.73.138:8080/ws';
 
 const contentTypes = {
