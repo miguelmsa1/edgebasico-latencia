@@ -5,7 +5,7 @@ Repositorio ordenado en dos componentes:
 - `frontend/`: web que despliega el usuario de la demo.
 - `backend/`: eco WebSocket independiente con página de estado y contador de tests.
 
-El navegador compara tres filas: nodo Edge donde se instancia la app, nodo Edge Madrid y Azure. Madrid permanece visible como `No configurado` hasta que exista un endpoint real; ningún nodo de usuario —incluido Coruña— se utiliza como destino predeterminado.
+El navegador compara tres filas: nodo Edge donde se instancia la app, nodo Edge Madrid y Azure. Madrid permanece visible como `No configurado` hasta que exista un endpoint real; ningún nodo de usuario se utiliza como destino predeterminado.
 
 ## Qué hacen los instaladores
 
@@ -69,7 +69,7 @@ EDGE_MADRID_WS_URL=ws://<IP-MADRID>:8080/ws
 AZURE_WS_URL=ws://158.158.8.244:8080/ws
 ```
 
-La IP `213.4.160.147` corresponde a Coruña y no se configura como Madrid ni como destino remoto predeterminado. Un usuario puede levantar allí —o en cualquier otra región— su propia instancia con `install-all.sh`; ese despliegue aparecerá como la fila local `Nodo Edge <REGION>`.
+Un usuario puede levantar en cualquier región su propia instancia con `install-all.sh`; ese despliegue aparecerá como la fila local `Nodo Edge <REGION>`.
 
 Variables:
 
