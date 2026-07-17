@@ -115,7 +115,7 @@ function tryReadFrame(buffer) {
     return { opcode, payload, remaining: buffer.subarray(frameLength) };
 }
 
-function handleWebSocket(request, socket) {
+function handleWebSocket(request, socket, head = Buffer.alloc(0)) {
     const key = request.headers['sec-websocket-key'];
     if (!key) {
         socket.destroy();
@@ -132,7 +132,7 @@ function handleWebSocket(request, socket) {
 
     stats.websocketConnections += 1;
     stats.activeConnections += 1;
-    let buffer = Buffer.alloc(0);
+    let buffer = Buffer.from(head);
     let connectionClosed = false;
     function closeConnection() {
         if (!connectionClosed) {
@@ -142,8 +142,7 @@ function handleWebSocket(request, socket) {
     }
     socket.on('close', closeConnection);
     socket.on('error', closeConnection);
-    socket.on('data', (chunk) => {
-        buffer = Buffer.concat([buffer, chunk]);
+    function processFrames() {
         try {
             while (buffer.length) {
                 const frame = tryReadFrame(buffer);
@@ -168,17 +167,23 @@ function handleWebSocket(request, socket) {
             console.warn('Invalid WebSocket frame:', error.message);
             socket.destroy();
         }
+    }
+    socket.on('data', (chunk) => {
+        buffer = Buffer.concat([buffer, chunk]);
+        processFrames();
     });
+    processFrames();
+    socket.resume();
 }
 
 const server = http.createServer(serveHttp);
-server.on('upgrade', (request, socket) => {
+server.on('upgrade', (request, socket, head) => {
     const requestUrl = new URL(request.url, 'http://localhost');
     if (requestUrl.pathname !== '/ws') {
         socket.destroy();
         return;
     }
-    handleWebSocket(request, socket);
+    handleWebSocket(request, socket, head);
 });
 server.listen(port, '0.0.0.0', () => {
     console.log(`Hello Edge latency backend listening on port ${port}`);
