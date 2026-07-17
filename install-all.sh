@@ -17,7 +17,7 @@ BACKEND_CONTAINER="${BACKEND_CONTAINER:-hello-edge-backend}"
 
 # Target URLs shown by the frontend
 APP_EDGE_WS_URL="${APP_EDGE_WS_URL:-}"
-EDGE_MADRID_WS_URL="${EDGE_MADRID_WS_URL:-}"
+EDGE_MADRID_WS_URL="${EDGE_MADRID_WS_URL:-ws://213.4.160.118:8080/ws}"
 AZURE_WS_URL="${AZURE_WS_URL:-ws://158.158.8.244:8080/ws}"
 
 if [ -z "${REGION}" ]; then
@@ -87,5 +87,5 @@ echo "Región/fila local: Nodo Edge ${REGION}"
 echo "Frontend: http://<IP>:${FRONTEND_PORT}/"
 echo "Backend: http://<IP>:${BACKEND_PORT}/"
 echo "WebSocket local: ${APP_EDGE_WS_URL:-ws://<IP>:${BACKEND_PORT}/ws}"
-echo "Madrid: ${EDGE_MADRID_WS_URL:-pendiente de configurar}"
+echo "Madrid: ${EDGE_MADRID_WS_URL}"
 echo "Azure: ${AZURE_WS_URL}"

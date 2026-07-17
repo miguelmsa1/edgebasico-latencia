@@ -5,7 +5,7 @@ Repositorio ordenado en dos componentes:
 - `frontend/`: web que despliega el usuario de la demo.
 - `backend/`: eco WebSocket independiente con página de estado y contador de tests.
 
-El navegador compara tres filas: nodo Edge donde se instancia la app, nodo Edge Madrid y Azure. Madrid permanece visible como `No configurado` hasta que exista un endpoint real; ningún nodo de usuario se utiliza como destino predeterminado.
+El navegador compara tres filas: nodo Edge donde se instancia la app, nodo Edge Madrid y Azure. Los destinos remotos de Madrid y Azure vienen configurados de forma predeterminada, aunque pueden sobrescribirse mediante variables de entorno.
 
 ## Qué hacen los instaladores
 
@@ -32,7 +32,7 @@ Variables:
 - `BACKEND_PORT` — puerto público del backend local. Predeterminado: `8080`.
 - `BACKEND_INTERNAL_PORT` — puerto interno del contenedor backend. Predeterminado: `8080`.
 - `APP_EDGE_WS_URL` — URL WebSocket completa del backend local. Si se omite, el navegador usa el hostname del frontend y `BACKEND_PORT`.
-- `EDGE_MADRID_WS_URL` — URL completa y puerto del futuro backend de Madrid. Sin valor predeterminado; mientras esté vacía, la fila muestra `No configurado`.
+- `EDGE_MADRID_WS_URL` — URL completa y puerto del backend de Madrid. Predeterminado: `ws://213.4.160.118:8080/ws`.
 - `AZURE_WS_URL` — URL completa y puerto del backend de Azure. Predeterminado: `ws://158.158.8.244:8080/ws`.
 - `FRONTEND_IMAGE` — predeterminado: `ghcr.io/miguelmsa1/edgebasico-latencia-frontend:latest`.
 - `BACKEND_IMAGE` — predeterminado: `ghcr.io/miguelmsa1/edgebasico-latencia-backend:latest`.
@@ -59,11 +59,11 @@ curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main
   | sudo BACKEND_PORT=8080 bash
 ```
 
-Lo que diferencia cada destino es la URL configurada al desplegar el frontend. Azure ya tiene un valor predeterminado; Madrid queda pendiente:
+Lo que diferencia cada destino es la URL configurada al desplegar el frontend. Madrid y Azure ya tienen valores predeterminados:
 
 ```bash
-# Cuando se despliegue el nodo de Madrid:
-EDGE_MADRID_WS_URL=ws://<IP-MADRID>:8080/ws
+# Valor predeterminado actual de Madrid:
+EDGE_MADRID_WS_URL=ws://213.4.160.118:8080/ws
 
 # Valor predeterminado actual de Azure:
 AZURE_WS_URL=ws://158.158.8.244:8080/ws
