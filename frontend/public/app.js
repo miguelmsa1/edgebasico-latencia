@@ -3,14 +3,13 @@ const runButton = document.getElementById('run-test');
 const statusEl = document.getElementById('status');
 const clientIpEl = document.getElementById('client-ip');
 const networkEl = document.getElementById('network');
-const summaryMedianEl = document.getElementById('summary-median');
+const summaryMeanEl = document.getElementById('summary-mean');
 const summaryFastestEl = document.getElementById('summary-fastest');
 const resultBody = document.getElementById('result-body');
 
-const testRounds = 50;
-const warmupRounds = 5;
-const roundPauseMs = 20;
-const payloadSize = 64;
+const testBursts = [
+    { packetSize: 64, rounds: 500, pauseMs: 100 }
+];
 const providerLogos = {
     'app-edge': { src: '/logo_telefonica.png', alt: 'Telefónica' },
     'edge-madrid': { src: '/logo_telefonica.png', alt: 'Telefónica' },
@@ -89,12 +88,10 @@ function percentile(values, rank) {
 
 function summarize(values) {
     if (!values.length) return null;
-    const median = percentile(values, 0.5);
     return {
-        min: Math.min(...values),
-        median,
-        max: Math.max(...values),
-        jitter: percentile(values.map((value) => Math.abs(value - median)), 0.5)
+        mean: values.reduce((total, value) => total + value, 0) / values.length,
+        p90: percentile(values, 0.9),
+        samples: values.length
     };
 }
 
@@ -104,9 +101,9 @@ function formatLatency(value) {
 
 function formatVsFastest(summary, fastest) {
     if (!summary || !fastest) return 'No disponible';
-    const difference = summary.median - fastest.median;
+    const difference = summary.mean - fastest.mean;
     if (Math.abs(difference) < 0.05) return 'Más rápido';
-    const percentage = fastest.median > 0 ? (difference / fastest.median) * 100 : null;
+    const percentage = fastest.mean > 0 ? (difference / fastest.mean) * 100 : null;
     return '+' + difference.toFixed(1) + ' ms' + (Number.isFinite(percentage) ? ' (+' + percentage.toFixed(0) + '%)' : '');
 }
 
@@ -122,8 +119,8 @@ function renderPendingRows() {
     resultBody.innerHTML = targets.map((target) => (
         '<tr data-target="' + escapeHtml(target.id) + '">' + renderTargetCell(target) +
         (target.url
-            ? '<td>Pendiente</td><td>Pendiente</td><td>Pendiente</td><td>Pendiente</td>'
-            : '<td>No configurado</td><td>—</td><td>—</td><td>—</td>') + '</tr>'
+            ? '<td>Pendiente</td><td>Pendiente</td><td>Pendiente</td>'
+            : '<td>No configurado</td><td>—</td><td>—</td>') + '</tr>'
     )).join('');
 }
 
@@ -133,7 +130,6 @@ function updateProgressRow(id, lastLatency) {
     row.children[1].textContent = formatLatency(lastLatency);
     row.children[2].textContent = 'Midiendo…';
     row.children[3].textContent = 'Midiendo…';
-    row.children[4].textContent = 'Midiendo…';
 }
 
 function updateSummaryRow(id, summary, fastest, unconfigured = false) {
@@ -148,10 +144,9 @@ function updateSummaryRow(id, summary, fastest, unconfigured = false) {
         for (let i = 1; i < row.children.length; i += 1) row.children[i].textContent = 'Error';
         return;
     }
-    row.children[1].textContent = formatLatency(summary.median);
-    row.children[2].textContent = formatVsFastest(summary, fastest);
-    row.children[3].textContent = formatLatency(summary.min) + ' / ' + formatLatency(summary.max);
-    row.children[4].textContent = formatLatency(summary.jitter);
+    row.children[1].textContent = formatLatency(summary.mean);
+    row.children[2].textContent = formatLatency(summary.p90);
+    row.children[3].textContent = formatVsFastest(summary, fastest);
 }
 
 function openSocket(url) {
@@ -173,9 +168,9 @@ function openSocket(url) {
     });
 }
 
-function measureWebSocketRtt(socket) {
+function measureWebSocketRtt(socket, packetSize) {
     return new Promise((resolve, reject) => {
-        const payload = new Uint8Array(payloadSize);
+        const payload = new Uint8Array(packetSize);
         const timeout = window.setTimeout(() => {
             cleanup();
             reject(new Error('Timeout WebSocket'));
@@ -193,7 +188,7 @@ function measureWebSocketRtt(socket) {
             const elapsed = performance.now() - start;
             const responseSize = event.data && event.data.byteLength;
             cleanup();
-            if (responseSize !== payloadSize) {
+            if (responseSize !== packetSize) {
                 reject(new Error('Respuesta con tamaño inesperado'));
                 return;
             }
@@ -208,28 +203,31 @@ function measureWebSocketRtt(socket) {
 
 async function measureTarget(target) {
     const socket = await openSocket(target.url);
-    const samples = [];
+    const burstResults = [];
     try {
-        for (let round = 1; round <= warmupRounds; round += 1) {
-            statusEl.textContent = target.label + ': calentamiento ' + round + '/' + warmupRounds + '…';
-            try { await measureWebSocketRtt(socket); } catch (error) { console.warn(error); }
-            if (round < warmupRounds) await sleep(roundPauseMs);
-        }
-        for (let round = 1; round <= testRounds; round += 1) {
-            statusEl.textContent = target.label + ': ronda ' + round + '/' + testRounds + '…';
-            try {
-                const latency = await measureWebSocketRtt(socket);
-                samples.push(latency);
-                updateProgressRow(target.id, latency);
-            } catch (error) {
-                console.warn('Fallo en ronda ' + round + ' para ' + target.label, error);
+        for (const burst of testBursts) {
+            const samples = [];
+            for (let round = 1; round <= burst.rounds; round += 1) {
+                const roundStartedAt = performance.now();
+                statusEl.textContent = target.label + ': ' + burst.packetSize + ' B · ping ' + round + '/' + burst.rounds + '…';
+                try {
+                    const latency = await measureWebSocketRtt(socket, burst.packetSize);
+                    samples.push(latency);
+                    updateProgressRow(target.id, latency);
+                } catch (error) {
+                    console.warn('Fallo en ping ' + round + ' de ' + burst.packetSize + ' B para ' + target.label, error);
+                }
+                if (round < burst.rounds) {
+                    const remainingPause = Math.max(0, burst.pauseMs - (performance.now() - roundStartedAt));
+                    await sleep(remainingPause);
+                }
             }
-            if (round < testRounds) await sleep(roundPauseMs);
+            burstResults.push({ packetSize: burst.packetSize, summary: summarize(samples) });
         }
     } finally {
         if (socket.readyState === WebSocket.OPEN) socket.close();
     }
-    return { ...target, summary: summarize(samples) };
+    return { ...target, bursts: burstResults, summary: burstResults[0] && burstResults[0].summary };
 }
 
 async function runTest() {
@@ -237,7 +235,7 @@ async function runTest() {
     statusEl.textContent = 'Abriendo canales WebSocket…';
     clientIpEl.textContent = 'Detectando…';
     networkEl.textContent = 'Consultando…';
-    summaryMedianEl.textContent = 'Pendiente';
+    summaryMeanEl.textContent = 'Pendiente';
     summaryFastestEl.textContent = 'Pendiente';
     renderPendingRows();
 
@@ -251,15 +249,15 @@ async function runTest() {
             }
         }));
         const fastest = results.filter((result) => result.summary).reduce((best, result) => (
-            !best || result.summary.median < best.summary.median ? result : best
+            !best || result.summary.mean < best.summary.mean ? result : best
         ), null);
         for (const result of results) {
             updateSummaryRow(result.id, result.summary, fastest && fastest.summary, result.unconfigured);
         }
         const appEdge = results.find((result) => result.id === 'app-edge' && result.summary);
-        summaryMedianEl.textContent = appEdge ? formatLatency(appEdge.summary.median) : 'No disponible';
+        summaryMeanEl.textContent = appEdge ? formatLatency(appEdge.summary.mean) : 'No disponible';
         summaryFastestEl.textContent = fastest
-            ? fastest.label + ' · ' + formatLatency(fastest.summary.median)
+            ? fastest.label + ' · ' + formatLatency(fastest.summary.mean)
             : 'No disponible';
         statusEl.textContent = 'RTT calculado. Consultando IP y operador…';
         await updateClientInfo();

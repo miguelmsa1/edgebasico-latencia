@@ -26,8 +26,8 @@
                     <p class="value" id="network">Pendiente</p>
                 </article>
                 <article class="metric">
-                    <p class="label">Mediana · 64 B</p>
-                    <p class="value" id="summary-median">Pendiente</p>
+                    <p class="label">Media · 64 B</p>
+                    <p class="value" id="summary-mean">Pendiente</p>
                 </article>
                 <article class="metric">
                     <p class="label">Ubicación más rápida</p>
@@ -40,17 +40,16 @@
                     <thead>
                         <tr>
                             <th>Destino</th>
-                            <th>Mediana</th>
+                            <th>Media · 64 B</th>
+                            <th>Percentil 90 · 64 B</th>
                             <th>Vs más rápido</th>
-                            <th>Min / max</th>
-                            <th>Jitter</th>
                         </tr>
                     </thead>
                     <tbody id="result-body"></tbody>
                 </table>
             </div>
 
-            <p class="note">Método de medición: 5 rondas de calentamiento descartadas y 50 rondas útiles por destino con paquetes de 64 B. El navegador mide RTT de aplicación WebSocket entre envío y eco recibido.</p>
+            <p class="note">Método de medición: ráfaga de 500 pings por destino con paquetes de 64 B y una separación de 100 ms entre envíos. Se muestran la media y el percentil 90 del RTT de aplicación WebSocket medido entre envío y eco recibido.</p>
         </section>
     </main>
     <script src="/app.js"></script>

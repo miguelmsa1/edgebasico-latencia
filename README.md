@@ -98,18 +98,20 @@ El frontend muestra:
 
 - IP detectada.
 - Ubicación / operador.
-- Mediana de 64 B del nodo local.
+- Media de RTT para paquetes de 64 B del nodo local.
 - Ubicación más rápida.
 - Tabla con `Nodo Edge <REGION>`, `Nodo Edge Madrid` y `Azure`.
-- Columnas: mediana, vs. más rápido, min/max y jitter.
+- Resultados por tamaño de paquete: media, percentil 90 y diferencia frente al destino más rápido.
 
 El texto `$$region$$` se sustituye en runtime por `REGION` mediante `/app-config.json`.
 
 ## Método de medición
 
-Por cada destino se descartan 5 rondas de calentamiento y se realizan 50 rondas útiles con mensajes de 64 B. El navegador mide mediante `performance.now()` el tiempo entre `socket.send()` y la recepción del eco.
+Por cada destino se ejecuta una ráfaga de 500 pings con mensajes de 64 B y una separación de 100 ms entre envíos. El navegador mide mediante `performance.now()` el tiempo entre `socket.send()` y la recepción del eco, y presenta la media aritmética y el percentil 90 del RTT.
 
-Es RTT de aplicación WebSocket observado por el navegador y no constituye una prueba de MTU/DF. Si el frontend usa HTTPS, los backends deben exponerse mediante `wss://`.
+La batería se define en `testBursts` dentro de `frontend/public/app.js`, lo que permite incorporar nuevos tamaños de paquete como ráfagas adicionales manteniendo los resultados agrupados por tamaño.
+
+Es RTT de aplicación WebSocket observado por el navegador y no constituye una prueba ICMP ni de MTU/DF. Los 64 B corresponden al payload WebSocket. Si el frontend usa HTTPS, los backends deben exponerse mediante `wss://`.
 
 ## GitHub Actions y GHCR
 
