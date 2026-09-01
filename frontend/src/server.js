@@ -6,7 +6,7 @@ const publicDir = path.join(__dirname, '..', 'public');
 const port = Number(process.env.PORT || 80);
 const region = process.env.REGION || process.env.EDGE_REGION || 'Bilbao';
 const localBackendPort = Number(process.env.LOCAL_BACKEND_PORT || 8080);
-const madridUrl = process.env.EDGE_MADRID_WS_URL || 'ws://213.4.160.118:8080/ws';
+const madridUrl = process.env.EDGE_MADRID_WS_URL || 'ws://213.4.160.115:8080/ws';
 const azureUrl = process.env.AZURE_WS_URL || 'ws://158.158.8.244:8080/ws';
 
 const contentTypes = {

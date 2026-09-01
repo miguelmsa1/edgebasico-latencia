@@ -17,7 +17,7 @@ BACKEND_CONTAINER="${BACKEND_CONTAINER:-hello-edge-backend}"
 
 # Target URLs shown by the frontend
 APP_EDGE_WS_URL="${APP_EDGE_WS_URL:-}"
-EDGE_MADRID_WS_URL="${EDGE_MADRID_WS_URL:-ws://213.4.160.118:8080/ws}"
+EDGE_MADRID_WS_URL="${EDGE_MADRID_WS_URL:-ws://213.4.160.115:8080/ws}"
 AZURE_WS_URL="${AZURE_WS_URL:-ws://158.158.8.244:8080/ws}"
 
 if [ -z "${REGION}" ]; then

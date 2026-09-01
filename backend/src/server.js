@@ -4,6 +4,7 @@ const http = require('http');
 const path = require('path');
 
 const publicDir = path.join(__dirname, '..', 'public');
+const backendVersion = '2026-09-01-websocket-resume';
 const port = Number(process.env.PORT || process.env.BACKEND_PORT || 8080);
 const publicPort = Number(process.env.PUBLIC_BACKEND_PORT || port);
 const startedAt = new Date();
@@ -29,11 +30,11 @@ function sendJson(response, payload) {
 function serveHttp(request, response) {
     const requestUrl = new URL(request.url, 'http://localhost');
     if (requestUrl.pathname === '/healthz') {
-        sendJson(response, { status: 'ok', port: publicPort, startedAt: startedAt.toISOString() });
+        sendJson(response, { status: 'ok', version: backendVersion, port: publicPort, startedAt: startedAt.toISOString() });
         return;
     }
     if (requestUrl.pathname === '/stats.json') {
-        sendJson(response, { port: publicPort, ...stats, startedAt: startedAt.toISOString(), uptimeSeconds: Math.floor(process.uptime()) });
+        sendJson(response, { version: backendVersion, port: publicPort, ...stats, startedAt: startedAt.toISOString(), uptimeSeconds: Math.floor(process.uptime()) });
         return;
     }
     const relative = requestUrl.pathname === '/' ? 'index.html' : requestUrl.pathname.replace(/^\/+/, '');
