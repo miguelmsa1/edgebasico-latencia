@@ -107,7 +107,7 @@ El texto `$$region$$` se sustituye en runtime por `REGION` mediante `/app-config
 
 ## Método de medición
 
-Por cada destino se ejecuta una ráfaga de 500 pings con mensajes de 64 B y una separación de 100 ms entre envíos. El navegador mide mediante `performance.now()` el tiempo entre `socket.send()` y la recepción del eco, y presenta la media aritmética y el percentil 90 del RTT.
+Por cada destino se ejecuta una ráfaga de 500 pings con mensajes de 64 B y una separación de 100 ms entre envíos. El navegador mide mediante `performance.now()` el tiempo entre `socket.send()` y la recepción del eco, y presenta la media aritmética y el percentil 90 del RTT. Cada eco tiene un timeout de 2 segundos; tras 10 fallos consecutivos, ese destino se marca como error y el resto de mediciones continúa.
 
 La batería se define en `testBursts` dentro de `frontend/public/app.js`, lo que permite incorporar nuevos tamaños de paquete como ráfagas adicionales manteniendo los resultados agrupados por tamaño.
 

@@ -10,6 +10,8 @@ const resultBody = document.getElementById('result-body');
 const testBursts = [
     { packetSize: 64, rounds: 500, pauseMs: 100 }
 ];
+const maxConsecutiveFailures = 10;
+const echoTimeoutMs = 2000;
 const providerLogos = {
     'app-edge': { src: '/logo_telefonica.png', alt: 'Telefónica' },
     'edge-madrid': { src: '/logo_telefonica.png', alt: 'Telefónica' },
@@ -132,6 +134,13 @@ function updateProgressRow(id, lastLatency) {
     row.children[3].textContent = 'Midiendo…';
 }
 
+function updateTargetError(id, message = 'Error de conexión') {
+    const row = resultBody.querySelector('tr[data-target="' + id + '"]');
+    if (!row) return;
+    row.children[1].textContent = message;
+    for (let i = 2; i < row.children.length; i += 1) row.children[i].textContent = '—';
+}
+
 function updateSummaryRow(id, summary, fastest, unconfigured = false) {
     const row = resultBody.querySelector('tr[data-target="' + id + '"]');
     if (!row) return;
@@ -174,7 +183,7 @@ function measureWebSocketRtt(socket, packetSize) {
         const timeout = window.setTimeout(() => {
             cleanup();
             reject(new Error('Timeout WebSocket'));
-        }, 5000);
+        }, echoTimeoutMs);
         function cleanup() {
             window.clearTimeout(timeout);
             socket.removeEventListener('message', onMessage);
@@ -207,15 +216,23 @@ async function measureTarget(target) {
     try {
         for (const burst of testBursts) {
             const samples = [];
+            let consecutiveFailures = 0;
             for (let round = 1; round <= burst.rounds; round += 1) {
                 const roundStartedAt = performance.now();
                 statusEl.textContent = target.label + ': ' + burst.packetSize + ' B · ping ' + round + '/' + burst.rounds + '…';
                 try {
                     const latency = await measureWebSocketRtt(socket, burst.packetSize);
                     samples.push(latency);
+                    consecutiveFailures = 0;
                     updateProgressRow(target.id, latency);
                 } catch (error) {
+                    consecutiveFailures += 1;
                     console.warn('Fallo en ping ' + round + ' de ' + burst.packetSize + ' B para ' + target.label, error);
+                    if (consecutiveFailures >= maxConsecutiveFailures) {
+                        const message = 'Error tras ' + maxConsecutiveFailures + ' intentos';
+                        updateTargetError(target.id, message);
+                        throw new Error(message);
+                    }
                 }
                 if (round < burst.rounds) {
                     const remainingPause = Math.max(0, burst.pauseMs - (performance.now() - roundStartedAt));
@@ -245,7 +262,8 @@ async function runTest() {
             try { return await measureTarget(target); }
             catch (error) {
                 console.warn('No se pudo medir ' + target.label, error);
-                return { ...target, summary: null };
+                updateTargetError(target.id, error.message || 'Error de conexión');
+                return { ...target, summary: null, error: true };
             }
         }));
         const fastest = results.filter((result) => result.summary).reduce((best, result) => (
