@@ -87,7 +87,7 @@ function serveStatic(request, response) {
         response.writeHead(200, {
             'content-type': contentTypes[extension] || 'application/octet-stream',
             'content-length': data.length,
-            'cache-control': extension === '.html' ? 'no-store' : 'public, max-age=300'
+            'cache-control': ['.html', '.css', '.js'].includes(extension) ? 'no-store' : 'public, max-age=300'
         });
         response.end(data);
     });
