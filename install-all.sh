@@ -17,7 +17,8 @@ BACKEND_CONTAINER="${BACKEND_CONTAINER:-hello-edge-backend}"
 
 # Target URLs shown by the frontend
 APP_EDGE_WS_URL="${APP_EDGE_WS_URL:-}"
-EDGE_MADRID_WS_URL="${EDGE_MADRID_WS_URL:-ws://213.4.160.115:8080/ws}"
+EDGE_MADRID_WS_URL="${EDGE_MADRID_WS_URL:-ws://213.4.160.121:8080/ws}"
+EDGE_BCN_WS_URL="${EDGE_BCN_WS_URL:-ws://213.4.161.52:8080/ws}"
 AZURE_WS_URL="${AZURE_WS_URL:-ws://158.158.8.244:8080/ws}"
 
 if [ -z "${REGION}" ]; then
@@ -78,6 +79,7 @@ docker run -d \
   -e LOCAL_BACKEND_PORT="${BACKEND_PORT}" \
   -e APP_EDGE_WS_URL="${APP_EDGE_WS_URL}" \
   -e EDGE_MADRID_WS_URL="${EDGE_MADRID_WS_URL}" \
+  -e EDGE_BCN_WS_URL="${EDGE_BCN_WS_URL}" \
   -e AZURE_WS_URL="${AZURE_WS_URL}" \
   "${FRONTEND_IMAGE}"
 
@@ -88,4 +90,5 @@ echo "Frontend: http://<IP>:${FRONTEND_PORT}/"
 echo "Backend: http://<IP>:${BACKEND_PORT}/"
 echo "WebSocket local: ${APP_EDGE_WS_URL:-ws://<IP>:${BACKEND_PORT}/ws}"
 echo "Madrid: ${EDGE_MADRID_WS_URL}"
+echo "Barcelona: ${EDGE_BCN_WS_URL}"
 echo "Azure: ${AZURE_WS_URL}"

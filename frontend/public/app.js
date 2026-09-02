@@ -15,6 +15,7 @@ const echoTimeoutMs = 2000;
 const providerLogos = {
     'app-edge': { src: '/logo_telefonica.png', alt: 'Telefónica' },
     'edge-madrid': { src: '/logo_telefonica.png', alt: 'Telefónica' },
+    'edge-bcn': { src: '/logo_telefonica.png', alt: 'Telefónica' },
     azure: { src: '/logo_azure.svg', alt: 'Azure' }
 };
 
@@ -31,7 +32,7 @@ async function loadConfig() {
     if (!response.ok) throw new Error('No se pudo cargar la configuración');
     const config = await response.json();
     regionEl.textContent = config.region || 'No configurada';
-    targets = Array.isArray(config.targets) ? config.targets.slice(0, 3) : [];
+    targets = Array.isArray(config.targets) ? config.targets.slice(0, 4) : [];
     renderPendingRows();
 }
 

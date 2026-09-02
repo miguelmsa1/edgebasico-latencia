@@ -6,7 +6,8 @@ const publicDir = path.join(__dirname, '..', 'public');
 const port = Number(process.env.PORT || 80);
 const region = process.env.REGION || process.env.EDGE_REGION || 'Bilbao';
 const localBackendPort = Number(process.env.LOCAL_BACKEND_PORT || 8080);
-const madridUrl = process.env.EDGE_MADRID_WS_URL || 'ws://213.4.160.115:8080/ws';
+const madridUrl = process.env.EDGE_MADRID_WS_URL || 'ws://213.4.160.121:8080/ws';
+const bcnUrl = process.env.EDGE_BCN_WS_URL || 'ws://213.4.161.52:8080/ws';
 const azureUrl = process.env.AZURE_WS_URL || 'ws://158.158.8.244:8080/ws';
 
 const contentTypes = {
@@ -54,6 +55,7 @@ function serveStatic(request, response) {
             targets: [
                 { id: 'app-edge', label: `Nodo Edge ${region}`, url: localBackendUrl(request), type: 'edge' },
                 { id: 'edge-madrid', label: 'Nodo Edge Madrid', url: madridUrl, type: 'edge' },
+                { id: 'edge-bcn', label: 'Nodo Edge Barcelona', url: bcnUrl, type: 'edge' },
                 { id: 'azure', label: 'Azure', url: azureUrl, type: 'external' }
             ]
         });

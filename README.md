@@ -32,7 +32,8 @@ Variables:
 - `BACKEND_PORT` — puerto público del backend local. Predeterminado: `8080`.
 - `BACKEND_INTERNAL_PORT` — puerto interno del contenedor backend. Predeterminado: `8080`.
 - `APP_EDGE_WS_URL` — URL WebSocket completa del backend local. Si se omite, el navegador usa el hostname del frontend y `BACKEND_PORT`.
-- `EDGE_MADRID_WS_URL` — URL completa y puerto del backend de Madrid. Predeterminado: `ws://213.4.160.115:8080/ws`.
+- `EDGE_MADRID_WS_URL` — URL completa y puerto del backend de Madrid. Predeterminado: `ws://213.4.160.121:8080/ws`.
+- `EDGE_BCN_WS_URL` — URL completa y puerto del backend de Barcelona. Predeterminado: `ws://213.4.161.52:8080/ws`.
 - `AZURE_WS_URL` — URL completa y puerto del backend de Azure. Predeterminado: `ws://158.158.8.244:8080/ws`.
 - `FRONTEND_IMAGE` — predeterminado: `ghcr.io/miguelmsa1/edgebasico-latencia-frontend:latest`.
 - `BACKEND_IMAGE` — predeterminado: `ghcr.io/miguelmsa1/edgebasico-latencia-backend:latest`.
@@ -63,7 +64,8 @@ Lo que diferencia cada destino es la URL configurada al desplegar el frontend. M
 
 ```bash
 # Valor predeterminado actual de Madrid:
-EDGE_MADRID_WS_URL=ws://213.4.160.115:8080/ws
+EDGE_MADRID_WS_URL=ws://213.4.160.121:8080/ws
+EDGE_BCN_WS_URL=ws://213.4.161.52:8080/ws
 
 # Valor predeterminado actual de Azure:
 AZURE_WS_URL=ws://158.158.8.244:8080/ws
