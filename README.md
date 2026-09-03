@@ -104,6 +104,7 @@ El frontend muestra:
 - Ubicación más rápida.
 - Tabla con `Nodo Edge <REGION>`, `Nodo Edge Madrid` y `Azure`.
 - Resultados por tamaño de paquete: media, percentil 90 y diferencia frente al destino más rápido.
+- Barra gráfica con el progreso agregado de todos los pings y destinos configurados.
 
 El texto `$$region$$` se sustituye en runtime por `REGION` mediante `/app-config.json`.
 

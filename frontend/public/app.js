@@ -6,6 +6,8 @@ const networkEl = document.getElementById('network');
 const summaryMeanEl = document.getElementById('summary-mean');
 const summaryFastestEl = document.getElementById('summary-fastest');
 const resultBody = document.getElementById('result-body');
+const progressEl = document.querySelector('.progress');
+const progressBar = document.getElementById('progress-bar');
 
 const testBursts = [
     { packetSize: 64, rounds: 500, pauseMs: 100 }
@@ -20,6 +22,8 @@ const providerLogos = {
 };
 
 let targets = [];
+let completedPings = 0;
+let totalPings = 0;
 
 function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, (char) => ({
@@ -76,6 +80,20 @@ async function updateClientInfo() {
 
 function sleep(ms) {
     return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+function resetProgress() {
+    completedPings = 0;
+    totalPings = targets
+        .filter((target) => target.url)
+        .reduce((total, target) => total + testBursts.reduce((sum, burst) => sum + burst.rounds, 0), 0);
+    updateProgress();
+}
+
+function updateProgress() {
+    const percentage = totalPings ? Math.min(100, completedPings * 100 / totalPings) : 0;
+    progressBar.style.width = percentage + '%';
+    progressEl.setAttribute('aria-valuenow', String(Math.round(percentage)));
 }
 
 function percentile(values, rank) {
@@ -234,6 +252,9 @@ async function measureTarget(target) {
                         updateTargetError(target.id, message);
                         throw new Error(message);
                     }
+                } finally {
+                    completedPings += 1;
+                    updateProgress();
                 }
                 if (round < burst.rounds) {
                     const remainingPause = Math.max(0, burst.pauseMs - (performance.now() - roundStartedAt));
@@ -256,6 +277,7 @@ async function runTest() {
     summaryMeanEl.textContent = 'Pendiente';
     summaryFastestEl.textContent = 'Pendiente';
     renderPendingRows();
+    resetProgress();
 
     try {
         const results = await Promise.all(targets.map(async (target) => {
