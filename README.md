@@ -127,10 +127,4 @@ Es RTT de aplicación WebSocket observado por el navegador y no constituye una p
    - `ghcr.io/miguelmsa1/edgebasico-latencia-backend:latest`
 4. Publicación adicional de una etiqueta con el SHA del commit.
 
-### Publicación y seguridad
 
-Las imágenes no las publica directamente Clovo. Clovo realiza el `push` del código mediante una clave SSH autorizada; después, GitHub Actions construye y publica las imágenes usando un `GITHUB_TOKEN` efímero generado para esa ejecución, limitado a `contents: read` y `packages: write`. No se utiliza ni se almacena un token personal.
-
-Que los packages sean públicos no concede permisos de escritura: cualquier persona puede descargar e inspeccionar las imágenes, pero no sustituirlas. En este proyecto es coherente con que el repositorio y la demo sean públicos y permite que los instaladores funcionen sin credenciales. Los Dockerfiles solo incorporan `src/` y `public/`; `REGISTRY_TOKEN` se entrega a `docker login` por entrada estándar y no se incluye en las imágenes.
-
-El riesgo relevante no es la descarga pública, sino publicar una imagen manipulada bajo `latest` si alguien consigue introducir código en `main` o comprometer una GitHub Action. Conviene proteger la rama `main`, revisar los cambios antes de integrarlos y mantener actualizadas —o fijadas por SHA— las acciones de terceros. Si en el futuro el código o las imágenes contienen componentes privados, los packages deberán pasar a privados y los instaladores requerirán credenciales de solo lectura.
