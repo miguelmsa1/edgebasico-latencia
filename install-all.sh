@@ -19,7 +19,7 @@ BACKEND_CONTAINER="${BACKEND_CONTAINER:-hello-edge-backend}"
 APP_EDGE_WS_URL="${APP_EDGE_WS_URL:-}"
 EDGE_MADRID_WS_URL="${EDGE_MADRID_WS_URL:-ws://213.4.160.121:8080/ws}"
 EDGE_BCN_WS_URL="${EDGE_BCN_WS_URL:-ws://213.4.161.52:8080/ws}"
-AZURE_WS_URL="${AZURE_WS_URL:-ws://158.158.8.244:8080/ws}"
+AWS_HTTPS_URL="${AWS_HTTPS_URL:-https://ec2.eu-south-2.amazonaws.com/}"
 
 if [ -z "${REGION}" ]; then
   echo "ERROR: REGION es obligatoria. Ejemplo: REGION=Bilbao" >&2
@@ -80,7 +80,14 @@ docker run -d \
   -e APP_EDGE_WS_URL="${APP_EDGE_WS_URL}" \
   -e EDGE_MADRID_WS_URL="${EDGE_MADRID_WS_URL}" \
   -e EDGE_BCN_WS_URL="${EDGE_BCN_WS_URL}" \
-  -e AZURE_WS_URL="${AZURE_WS_URL}" \
+  -e AWS_HTTPS_URL="${AWS_HTTPS_URL}" \
+  -e TEST_ROUNDS="${TEST_ROUNDS:-500}" \
+  -e TEST_PACKET_SIZE="${TEST_PACKET_SIZE:-64}" \
+  -e TEST_INTERVAL_MS="${TEST_INTERVAL_MS:-100}" \
+  -e TEST_TIMEOUT_MS="${TEST_TIMEOUT_MS:-2000}" \
+  -e TEST_WARMUPS="${TEST_WARMUPS:-5}" \
+  -e AWS_TEST_ROUNDS="${AWS_TEST_ROUNDS:-10}" \
+  -e AWS_TEST_INTERVAL_MS="${AWS_TEST_INTERVAL_MS:-5000}" \
   "${FRONTEND_IMAGE}"
 
 echo
@@ -91,4 +98,4 @@ echo "Backend: http://<IP>:${BACKEND_PORT}/"
 echo "WebSocket local: ${APP_EDGE_WS_URL:-ws://<IP>:${BACKEND_PORT}/ws}"
 echo "Madrid: ${EDGE_MADRID_WS_URL}"
 echo "Barcelona: ${EDGE_BCN_WS_URL}"
-echo "Azure: ${AZURE_WS_URL}"
+echo "AWS España: ${AWS_HTTPS_URL}"

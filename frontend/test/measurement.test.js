@@ -1,0 +1,5 @@
+const assert=require('node:assert/strict');
+const {summarize,matchesEcho,echo}=require('../public/measurement-worker.js');
+const s=summarize([1,2,3,4,5],6);assert.equal(s.mean,3);assert.equal(s.p50,3);assert.equal(s.min,1);assert.equal(s.jitter,1);assert.ok(Math.abs(s.failureRate-100/6)<1e-9);assert.equal(summarize([],0).mean,null);
+const p=new Uint8Array([0,0,0,1]);assert.ok(matchesEcho(p.buffer,p));assert.ok(!matchesEcho(new Uint8Array([0,0,0,2]).buffer,p));
+(async()=>{class Socket extends EventTarget{send(payload){this.payload=payload;}}const socket=new Socket();await assert.rejects(echo(socket,64,1,5));const stale=socket.payload;let settled=false;const next=echo(socket,64,2,100).then(()=>{settled=true;});socket.dispatchEvent(new MessageEvent('message',{data:stale.buffer}));await Promise.resolve();assert.equal(settled,false);socket.dispatchEvent(new MessageEvent('message',{data:socket.payload.buffer}));await next;assert.equal(settled,true);console.log('measurement tests passed');})().catch(e=>{console.error(e);process.exitCode=1;});

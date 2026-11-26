@@ -8,7 +8,9 @@ const region = process.env.REGION || process.env.EDGE_REGION || 'Bilbao';
 const localBackendPort = Number(process.env.LOCAL_BACKEND_PORT || 8080);
 const madridUrl = process.env.EDGE_MADRID_WS_URL || 'ws://213.4.160.121:8080/ws';
 const bcnUrl = process.env.EDGE_BCN_WS_URL || 'ws://213.4.161.52:8080/ws';
-const azureUrl = process.env.AZURE_WS_URL || 'ws://158.158.8.244:8080/ws';
+const awsUrl = process.env.AWS_HTTPS_URL || 'https://ec2.eu-south-2.amazonaws.com/';
+function bounded(name,fallback,min,max){const raw=process.env[name];const n=Number(raw);return raw&&Number.isInteger(n)&&n>=min&&n<=max?n:fallback;}
+const measurement={rounds:bounded('TEST_ROUNDS',500,1,5000),packetSize:bounded('TEST_PACKET_SIZE',64,4,65536),intervalMs:bounded('TEST_INTERVAL_MS',100,50,10000),timeoutMs:bounded('TEST_TIMEOUT_MS',2000,100,30000),warmups:bounded('TEST_WARMUPS',5,0,20),maxConsecutiveFailures:10,httpsRounds:bounded('AWS_TEST_ROUNDS',10,1,20),httpsIntervalMs:bounded('AWS_TEST_INTERVAL_MS',5000,5000,30000)};
 
 const contentTypes = {
     '.css': 'text/css; charset=utf-8',
@@ -52,11 +54,12 @@ function serveStatic(request, response) {
     if (requestUrl.pathname === '/app-config.json') {
         sendJson(response, 200, {
             region,
+            measurement,
             targets: [
-                { id: 'app-edge', label: `Nodo Edge ${region}`, url: localBackendUrl(request), type: 'edge' },
-                { id: 'edge-madrid', label: 'Nodo Edge Madrid', url: madridUrl, type: 'edge' },
-                { id: 'edge-bcn', label: 'Nodo Edge Barcelona', url: bcnUrl, type: 'edge' },
-                { id: 'azure', label: 'Azure', url: azureUrl, type: 'external' }
+                { id: 'app-edge', label: `Nodo Edge ${region}`, url: localBackendUrl(request), type: 'edge', protocol: 'websocket' },
+                { id: 'edge-madrid', label: 'Nodo Edge Madrid', url: madridUrl, type: 'edge', protocol: 'websocket' },
+                { id: 'edge-bcn', label: 'Nodo Edge Barcelona', url: bcnUrl, type: 'edge', protocol: 'websocket' },
+                { id: 'aws', label: 'AWS España', url: awsUrl, type: 'external', protocol: 'https' }
             ]
         });
         return;

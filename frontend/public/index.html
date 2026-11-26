@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hello Edge!</title>
-    <link rel="stylesheet" href="/styles.css?v=20260903-1">
+    <link rel="stylesheet" href="/styles.css?v=20261126-1">
 </head>
 <body>
     <main>
@@ -12,7 +12,7 @@
         <h1>Hello Edge!</h1>
         <p class="subtitle">Estás conectado vía internet al nodo de <strong id="edge-region">$$region$$</strong></p>
 
-        <section class="tools" aria-label="Medición de RTT WebSocket">
+        <section class="tools" aria-label="Medición de latencia">
             <button id="run-test" type="button">Lanzar test de latencia</button>
             <p class="status" id="status"></p>
 
@@ -26,11 +26,11 @@
                     <p class="value" id="network">Pendiente</p>
                 </article>
                 <article class="metric">
-                    <p class="label">Media · 64 B</p>
+                    <p class="label">Media Edge local</p>
                     <p class="value" id="summary-mean">Pendiente</p>
                 </article>
                 <article class="metric">
-                    <p class="label">Ubicación más rápida</p>
+                    <p class="label">Edge más rápido (WebSocket)</p>
                     <p class="value" id="summary-fastest">Pendiente</p>
                 </article>
             </div>
@@ -39,10 +39,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Destino</th>
-                            <th>Media · 64 B</th>
-                            <th>Percentil 90 · 64 B</th>
-                            <th>Vs más rápido</th>
+                            <th>Destino</th><th>Método</th><th>Media</th><th>Mín.</th><th>P50</th><th>P90</th><th>P95</th><th>P99</th><th>Variación RTT</th><th>Fallos</th><th>Vs Edge más rápido</th><th>Estado</th>
                         </tr>
                     </thead>
                     <tbody id="result-body"></tbody>
@@ -53,9 +50,9 @@
                 <span id="progress-bar"></span>
             </div>
 
-            <p class="note">Método de medición: ráfaga de 500 pings por destino con paquetes de 64 B y una separación de 100 ms entre envíos. Se muestran la media y el percentil 90 del RTT de aplicación WebSocket medido entre envío y eco recibido. Un destino se marca como error tras 10 intentos consecutivos sin respuesta.</p>
+            <p class="note">Edge: eco WebSocket persistente con calentamiento y secuencia única. AWS España: tiempo hasta respuesta HTTPS, incluido procesamiento HTTP y posibles conexiones nuevas; no comparable directamente con WebSocket. Ranking limitado a destinos WebSocket sin fallos. Fallos de aplicación, no pérdida de paquetes IP. Variación RTT: media de diferencias absolutas entre muestras válidas consecutivas. Mantén la pestaña visible durante el test.</p>
         </section>
     </main>
-    <script src="/app.js?v=20260903-1"></script>
+    <script src="/app.js?v=20261126-1"></script>
 </body>
 </html>
