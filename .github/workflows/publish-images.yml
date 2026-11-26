@@ -3,6 +3,8 @@ name: Validate and publish frontend/backend images
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -20,6 +22,8 @@ jobs:
         run: |
           node --check frontend/src/server.js
           node --check frontend/public/app.js
+          node --check frontend/public/measurement-worker.js
+          node frontend/test/measurement.test.js
           node --check backend/src/server.js
           node --check backend/public/status.js
           bash -n install-all.sh
@@ -27,6 +31,7 @@ jobs:
           docker compose config >/dev/null
 
   publish:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: validate
     runs-on: ubuntu-latest
     strategy:

@@ -9,16 +9,14 @@ const resultBody = document.getElementById('result-body');
 const progressEl = document.querySelector('.progress');
 const progressBar = document.getElementById('progress-bar');
 
-const testBursts = [
-    { packetSize: 64, rounds: 500, pauseMs: 100 }
-];
-const maxConsecutiveFailures = 10;
-const echoTimeoutMs = 2000;
+let measurement;
+let invalidVisibility=false;
+let running=false;
+document.addEventListener('visibilitychange',()=>{if(running&&document.hidden)invalidVisibility=true;});
 const providerLogos = {
     'app-edge': { src: '/logo_telefonica.png', alt: 'Telefónica' },
     'edge-madrid': { src: '/logo_telefonica.png', alt: 'Telefónica' },
-    'edge-bcn': { src: '/logo_telefonica.png', alt: 'Telefónica' },
-    azure: { src: '/logo_azure.svg', alt: 'Azure' }
+    'edge-bcn': { src: '/logo_telefonica.png', alt: 'Telefónica' }
 };
 
 let targets = [];
@@ -36,7 +34,8 @@ async function loadConfig() {
     if (!response.ok) throw new Error('No se pudo cargar la configuración');
     const config = await response.json();
     regionEl.textContent = config.region || 'No configurada';
-    targets = Array.isArray(config.targets) ? config.targets.slice(0, 4) : [];
+    targets = Array.isArray(config.targets) ? config.targets : [];
+    measurement = config.measurement;
     renderPendingRows();
 }
 
@@ -78,241 +77,59 @@ async function updateClientInfo() {
     }
 }
 
-function sleep(ms) {
-    return new Promise((resolve) => window.setTimeout(resolve, ms));
-}
-
-function resetProgress() {
-    completedPings = 0;
-    totalPings = targets
-        .filter((target) => target.url)
-        .reduce((total, target) => total + testBursts.reduce((sum, burst) => sum + burst.rounds, 0), 0);
-    updateProgress();
-}
-
-function updateProgress() {
-    const percentage = totalPings ? Math.min(100, completedPings * 100 / totalPings) : 0;
-    progressBar.style.width = percentage + '%';
-    progressEl.setAttribute('aria-valuenow', String(Math.round(percentage)));
-}
-
-function percentile(values, rank) {
-    if (!values.length) return null;
-    const sorted = [...values].sort((a, b) => a - b);
-    const index = (sorted.length - 1) * rank;
-    const lower = Math.floor(index);
-    const upper = Math.ceil(index);
-    return lower === upper
-        ? sorted[lower]
-        : sorted[lower] + (sorted[upper] - sorted[lower]) * (index - lower);
-}
-
-function summarize(values) {
-    if (!values.length) return null;
-    return {
-        mean: values.reduce((total, value) => total + value, 0) / values.length,
-        p90: percentile(values, 0.9),
-        samples: values.length
-    };
-}
-
-function formatLatency(value) {
-    return Number.isFinite(value) ? value.toFixed(1) + ' ms' : 'No disponible';
-}
-
-function formatVsFastest(summary, fastest) {
-    if (!summary || !fastest) return 'No disponible';
-    const difference = summary.mean - fastest.mean;
-    if (Math.abs(difference) < 0.05) return 'Más rápido';
-    const percentage = fastest.mean > 0 ? (difference / fastest.mean) * 100 : null;
-    return '+' + difference.toFixed(1) + ' ms' + (Number.isFinite(percentage) ? ' (+' + percentage.toFixed(0) + '%)' : '');
-}
-
-function renderTargetCell(target) {
-    const logo = providerLogos[target.id];
-    const logoHtml = logo
-        ? '<img class="provider-logo provider-logo-' + target.id + '" src="' + logo.src + '" alt="' + logo.alt + '">'
-        : '';
-    return '<td><div class="provider">' + logoHtml + '<strong>' + escapeHtml(target.label) + '</strong></div></td>';
-}
-
-function renderPendingRows() {
-    resultBody.innerHTML = targets.map((target) => (
-        '<tr data-target="' + escapeHtml(target.id) + '">' + renderTargetCell(target) +
-        (target.url
-            ? '<td>Pendiente</td><td>Pendiente</td><td>Pendiente</td>'
-            : '<td>No configurado</td><td>—</td><td>—</td>') + '</tr>'
-    )).join('');
-}
-
-function updateProgressRow(id, lastLatency) {
-    const row = resultBody.querySelector('tr[data-target="' + id + '"]');
-    if (!row) return;
-    row.children[1].textContent = formatLatency(lastLatency);
-    row.children[2].textContent = 'Midiendo…';
-    row.children[3].textContent = 'Midiendo…';
-}
-
-function updateTargetError(id, message = 'Error de conexión') {
-    const row = resultBody.querySelector('tr[data-target="' + id + '"]');
-    if (!row) return;
-    row.children[1].textContent = message;
-    for (let i = 2; i < row.children.length; i += 1) row.children[i].textContent = '—';
-}
-
-function updateSummaryRow(id, summary, fastest, unconfigured = false) {
-    const row = resultBody.querySelector('tr[data-target="' + id + '"]');
-    if (!row) return;
-    if (unconfigured) {
-        row.children[1].textContent = 'No configurado';
-        for (let i = 2; i < row.children.length; i += 1) row.children[i].textContent = '—';
-        return;
+function formatLatency(value){return Number.isFinite(value)?value.toFixed(1)+' ms':'—';}
+function renderRows(results=[]){
+    const byId=new Map(results.map(r=>[r.id,r]));
+    const valid=results.filter(r=>r.protocol==='websocket'&&!r.error&&r.summary.samples&&r.summary.samples===r.summary.attempts);
+    const fastest=valid.reduce((best,r)=>!best||r.summary.mean<best.summary.mean?r:best,null);
+    resultBody.replaceChildren();
+    for(const target of targets){
+        const row=document.createElement('tr');row.dataset.target=target.id;
+        const r=byId.get(target.id),s=r?.summary;
+        const delta=target.protocol==='https'?'No comparable':r&&valid.includes(r)&&fastest?formatLatency(s.mean-fastest.summary.mean):'—';
+        const name=document.createElement('td'),provider=document.createElement('div');provider.className='provider';
+        const logo=providerLogos[target.id];if(logo){const image=document.createElement('img');image.src=logo.src;image.alt=logo.alt;image.className='provider-logo provider-logo-'+target.id;provider.append(image);}
+        const label=document.createElement('strong');label.textContent=target.label;provider.append(label);name.append(provider);row.append(name);
+        const cells=[target.protocol==='https'?'HTTPS':'WebSocket',
+            s?.samples?formatLatency(s.mean):r?'Sin respuesta':'Pendiente',
+            ...['min','p50','p90','p95','p99','jitter'].map(k=>s?formatLatency(s[k]):'—'),
+            s?.attempts?s.failureRate.toFixed(1)+'% ('+s.samples+'/'+s.attempts+'; '+r.planned+' previstos)':'—',
+            delta,r?.error||''];
+        for(const value of cells){const td=document.createElement('td');td.textContent=value;row.append(td);}
+        resultBody.append(row);
     }
-    if (!summary) {
-        for (let i = 1; i < row.children.length; i += 1) row.children[i].textContent = 'Error';
-        return;
-    }
-    row.children[1].textContent = formatLatency(summary.mean);
-    row.children[2].textContent = formatLatency(summary.p90);
-    row.children[3].textContent = formatVsFastest(summary, fastest);
+    summaryFastestEl.textContent=fastest?fastest.label+' · '+formatLatency(fastest.summary.mean):'No disponible';
+    const local=byId.get('app-edge');summaryMeanEl.textContent=local?.summary.samples?formatLatency(local.summary.mean):'No disponible';
 }
-
-function openSocket(url) {
-    return new Promise((resolve, reject) => {
-        const socket = new WebSocket(url);
-        socket.binaryType = 'arraybuffer';
-        const timeout = window.setTimeout(() => {
-            socket.close();
-            reject(new Error('Timeout al abrir WebSocket'));
-        }, 5000);
-        socket.addEventListener('open', () => {
-            window.clearTimeout(timeout);
-            resolve(socket);
-        }, { once: true });
-        socket.addEventListener('error', () => {
-            window.clearTimeout(timeout);
-            reject(new Error('No se pudo abrir WebSocket'));
-        }, { once: true });
-    });
-}
-
-function measureWebSocketRtt(socket, packetSize) {
-    return new Promise((resolve, reject) => {
-        const payload = new Uint8Array(packetSize);
-        const timeout = window.setTimeout(() => {
-            cleanup();
-            reject(new Error('Timeout WebSocket'));
-        }, echoTimeoutMs);
-        function cleanup() {
-            window.clearTimeout(timeout);
-            socket.removeEventListener('message', onMessage);
-            socket.removeEventListener('error', onError);
-        }
-        function onError() {
-            cleanup();
-            reject(new Error('Error WebSocket'));
-        }
-        function onMessage(event) {
-            const elapsed = performance.now() - start;
-            const responseSize = event.data && event.data.byteLength;
-            cleanup();
-            if (responseSize !== packetSize) {
-                reject(new Error('Respuesta con tamaño inesperado'));
-                return;
-            }
-            resolve(elapsed);
-        }
-        socket.addEventListener('message', onMessage);
-        socket.addEventListener('error', onError);
-        const start = performance.now();
-        socket.send(payload);
-    });
-}
-
-async function measureTarget(target) {
-    const socket = await openSocket(target.url);
-    const burstResults = [];
-    try {
-        for (const burst of testBursts) {
-            const samples = [];
-            let consecutiveFailures = 0;
-            for (let round = 1; round <= burst.rounds; round += 1) {
-                const roundStartedAt = performance.now();
-                statusEl.textContent = target.label + ': ' + burst.packetSize + ' B · ping ' + round + '/' + burst.rounds + '…';
-                try {
-                    const latency = await measureWebSocketRtt(socket, burst.packetSize);
-                    samples.push(latency);
-                    consecutiveFailures = 0;
-                    updateProgressRow(target.id, latency);
-                } catch (error) {
-                    consecutiveFailures += 1;
-                    console.warn('Fallo en ping ' + round + ' de ' + burst.packetSize + ' B para ' + target.label, error);
-                    if (consecutiveFailures >= maxConsecutiveFailures) {
-                        const message = 'Error tras ' + maxConsecutiveFailures + ' intentos';
-                        updateTargetError(target.id, message);
-                        throw new Error(message);
-                    }
-                } finally {
-                    completedPings += 1;
-                    updateProgress();
+function renderPendingRows(){renderRows();}
+async function runTest(){
+    if(running||!measurement)return;
+    running=true;invalidVisibility=document.hidden;runButton.disabled=true;
+    renderRows();statusEl.textContent='Calentamiento y medición…';progressBar.style.width='0%';progressEl.setAttribute('aria-valuenow','0');
+    let worker;
+    try{
+        worker=new Worker('/measurement-worker.js');
+        const results=await new Promise((resolve,reject)=>{
+            worker.onerror=e=>reject(new Error(e.message||'Error del worker'));
+            worker.onmessage=({data})=>{
+                if(data.type==='done')resolve(data.results);
+                if(data.type==='error')reject(new Error(data.message));
+                if(data.type==='progress'){
+                    const total=targets.reduce((n,t)=>n+(t.protocol==='https'?measurement.httpsRounds:measurement.rounds),0);
+                    const done=data.updates.reduce((n,t)=>n+t.attempts,0);
+                    const percent=Math.min(100,Math.round(100*done/total));
+                    progressBar.style.width=percent+'%';progressEl.setAttribute('aria-valuenow',String(percent));
+                    for(const t of data.updates){const row=[...resultBody.rows].find(r=>r.dataset.target===t.id);if(row)row.children[2].textContent=formatLatency(t.last)+' · '+t.attempts+'/'+t.rounds;}
                 }
-                if (round < burst.rounds) {
-                    const remainingPause = Math.max(0, burst.pauseMs - (performance.now() - roundStartedAt));
-                    await sleep(remainingPause);
-                }
-            }
-            burstResults.push({ packetSize: burst.packetSize, summary: summarize(samples) });
-        }
-    } finally {
-        if (socket.readyState === WebSocket.OPEN) socket.close();
-    }
-    return { ...target, bursts: burstResults, summary: burstResults[0] && burstResults[0].summary };
-}
-
-async function runTest() {
-    runButton.disabled = true;
-    statusEl.textContent = 'Abriendo canales WebSocket…';
-    clientIpEl.textContent = 'Detectando…';
-    networkEl.textContent = 'Consultando…';
-    summaryMeanEl.textContent = 'Pendiente';
-    summaryFastestEl.textContent = 'Pendiente';
-    renderPendingRows();
-    resetProgress();
-
-    try {
-        const results = await Promise.all(targets.map(async (target) => {
-            if (!target.url) return { ...target, summary: null, unconfigured: true };
-            try { return await measureTarget(target); }
-            catch (error) {
-                console.warn('No se pudo medir ' + target.label, error);
-                updateTargetError(target.id, error.message || 'Error de conexión');
-                return { ...target, summary: null, error: true };
-            }
-        }));
-        const fastest = results.filter((result) => result.summary).reduce((best, result) => (
-            !best || result.summary.mean < best.summary.mean ? result : best
-        ), null);
-        for (const result of results) {
-            updateSummaryRow(result.id, result.summary, fastest && fastest.summary, result.unconfigured);
-        }
-        const appEdge = results.find((result) => result.id === 'app-edge' && result.summary);
-        summaryMeanEl.textContent = appEdge ? formatLatency(appEdge.summary.mean) : 'No disponible';
-        summaryFastestEl.textContent = fastest
-            ? fastest.label + ' · ' + formatLatency(fastest.summary.mean)
-            : 'No disponible';
-        statusEl.textContent = 'RTT calculado. Consultando IP y operador…';
+            };
+            worker.postMessage({targets,config:measurement});
+        });
+        renderRows(results);progressBar.style.width='100%';progressEl.setAttribute('aria-valuenow','100');
+        const hidden=invalidVisibility;
+        statusEl.textContent=hidden?'Test completado: pestaña oculta; resultados potencialmente inválidos.':'Test completado';
         await updateClientInfo();
-        statusEl.textContent = 'Test completado';
-    } catch (error) {
-        console.error(error);
-        statusEl.textContent = 'No se pudo completar el test WebSocket.';
-    } finally {
-        runButton.disabled = false;
-    }
+    }catch(e){statusEl.textContent='Error: '+e.message;}finally{worker?.terminate();running=false;runButton.disabled=false;}
 }
-
-loadConfig().catch((error) => {
-    console.error(error);
-    statusEl.textContent = 'No se pudo cargar la configuración de la demo.';
-});
-runButton.addEventListener('click', runTest);
+runButton.disabled=true;
+loadConfig().then(()=>{runButton.disabled=false;}).catch(e=>{statusEl.textContent=e.message;});
+runButton.addEventListener('click',runTest);

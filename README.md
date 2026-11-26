@@ -5,14 +5,14 @@ Repositorio ordenado en dos componentes:
 - `frontend/`: web que despliega el usuario de la demo.
 - `backend/`: eco WebSocket independiente con página de estado y contador de tests.
 
-El navegador compara tres filas: nodo Edge donde se instancia la app, nodo Edge Madrid y Azure. Los destinos remotos de Madrid y Azure vienen configurados de forma predeterminada, aunque pueden sobrescribirse mediante variables de entorno.
+El navegador compara cuatro filas: Edge local, Madrid, Barcelona y AWS España (HTTPS). Los destinos remotos de Madrid y AWS España vienen configurados de forma predeterminada, aunque pueden sobrescribirse mediante variables de entorno.
 
 ## Qué hacen los instaladores
 
 Hay únicamente dos instaladores raíz. Ambos están preparados para Ubuntu/Debian, deben ejecutarse como `root` y son repetibles: si los contenedores ya existen, los reemplazan por la versión indicada.
 
 - `install-all.sh`: instala Docker si falta, permite los puertos del frontend y backend en UFW, descarga las dos imágenes y despliega frontend + backend en la misma máquina. `REGION` define la fila local `Nodo Edge <REGION>` y el frontend construye la URL local con el hostname público y `BACKEND_PORT`.
-- `install-backend.sh`: instala Docker si falta, permite el puerto del backend en UFW, descarga únicamente la imagen backend y despliega el eco WebSocket con su página de estado. El mismo comando sirve para Madrid, Azure o un nodo levantado por un usuario: la ubicación no se configura en el backend, sino en la URL que recibe el frontend.
+- `install-backend.sh`: instala Docker si falta, permite el puerto del backend en UFW, descarga únicamente la imagen backend y despliega el eco WebSocket con su página de estado. El mismo comando sirve para Madrid, AWS España o un nodo levantado por un usuario: la ubicación no se configura en el backend, sino en la URL que recibe el frontend.
 
 Los scripts permiten autenticación opcional contra GHCR mediante `REGISTRY_USER` y `REGISTRY_TOKEN`, pero no es necesaria cuando las imágenes son públicas. El grupo de seguridad de OpenStack debe permitir también los puertos publicados; UFW solo configura el firewall de la máquina.
 
@@ -34,7 +34,7 @@ Variables:
 - `APP_EDGE_WS_URL` — URL WebSocket completa del backend local. Si se omite, el navegador usa el hostname del frontend y `BACKEND_PORT`.
 - `EDGE_MADRID_WS_URL` — URL completa y puerto del backend de Madrid. Predeterminado: `ws://213.4.160.121:8080/ws`.
 - `EDGE_BCN_WS_URL` — URL completa y puerto del backend de Barcelona. Predeterminado: `ws://213.4.161.52:8080/ws`.
-- `AZURE_WS_URL` — URL completa y puerto del backend de Azure. Predeterminado: `ws://158.158.8.244:8080/ws`.
+- `AWS_HTTPS_URL` — URL HTTPS regional de AWS España. Predeterminado: `https://ec2.eu-south-2.amazonaws.com/`.
 - `FRONTEND_IMAGE` — predeterminado: `ghcr.io/miguelmsa1/edgebasico-latencia-frontend:latest`.
 - `BACKEND_IMAGE` — predeterminado: `ghcr.io/miguelmsa1/edgebasico-latencia-backend:latest`.
 - `FRONTEND_CONTAINER` / `BACKEND_CONTAINER` — nombres de los contenedores.
@@ -53,22 +53,22 @@ curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main
 
 ### 2. Solo backend
 
-El comando es intencionadamente el mismo para cualquier ubicación porque el backend es un eco WebSocket neutro y no necesita conocer si está en Madrid, Azure o un nodo de usuario:
+El comando es intencionadamente el mismo para cualquier ubicación porque el backend es un eco WebSocket neutro y no necesita conocer si está en Madrid, AWS España o un nodo de usuario:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/miguelmsa1/edgebasico-latencia/main/install-backend.sh \
   | sudo BACKEND_PORT=8080 bash
 ```
 
-Lo que diferencia cada destino es la URL configurada al desplegar el frontend. Madrid y Azure ya tienen valores predeterminados:
+Lo que diferencia cada destino es la URL configurada al desplegar el frontend. Madrid y AWS España ya tienen valores predeterminados:
 
 ```bash
 # Valor predeterminado actual de Madrid:
 EDGE_MADRID_WS_URL=ws://213.4.160.121:8080/ws
 EDGE_BCN_WS_URL=ws://213.4.161.52:8080/ws
 
-# Valor predeterminado actual de Azure:
-AZURE_WS_URL=ws://158.158.8.244:8080/ws
+# Valor predeterminado actual de AWS España:
+AWS_HTTPS_URL=https://ec2.eu-south-2.amazonaws.com/
 ```
 
 Un usuario puede levantar en cualquier región su propia instancia con `install-all.sh`; ese despliegue aparecerá como la fila local `Nodo Edge <REGION>`.
@@ -102,7 +102,7 @@ El frontend muestra:
 - Ubicación / operador.
 - Media de RTT para paquetes de 64 B del nodo local.
 - Ubicación más rápida.
-- Tabla con `Nodo Edge <REGION>`, `Nodo Edge Madrid` y `Azure`.
+- Tabla con `Nodo Edge <REGION>`, `Nodo Edge Madrid` y `AWS España`.
 - Resultados por tamaño de paquete: media, percentil 90 y diferencia frente al destino más rápido.
 - Barra gráfica con el progreso agregado de todos los pings y destinos configurados.
 
@@ -110,11 +110,11 @@ El texto `$$region$$` se sustituye en runtime por `REGION` mediante `/app-config
 
 ## Método de medición
 
-Por cada destino se ejecuta una ráfaga de 500 pings con mensajes de 64 B y una separación de 100 ms entre envíos. El navegador mide mediante `performance.now()` el tiempo entre `socket.send()` y la recepción del eco, y presenta la media aritmética y el percentil 90 del RTT. Cada eco tiene un timeout de 2 segundos; tras 10 fallos consecutivos, ese destino se marca como error y el resto de mediciones continúa.
+Edge: 500 ecos WebSocket de 64 B cada 100 ms, 5 calentamientos excluidos, secuencia única y timeout de 2 s; aborta cada destino tras 10 fallos consecutivos. Un Web Worker mide y comunica progreso cada 250 ms. Métricas: mínimo, media, P50/P90/P95/P99, media de diferencias absolutas entre RTT válidos consecutivos y fallos de aplicación. El ranking excluye destinos con fallos. Si la pestaña se oculta, la prueba se marca como potencialmente inválida.
 
-La batería se define en `testBursts` dentro de `frontend/public/app.js`, lo que permite incorporar nuevos tamaños de paquete como ráfagas adicionales manteniendo los resultados agrupados por tamaño.
+AWS España: endpoint HTTPS regional oficial, no EC2 Reachability ICMP. Diez solicitudes GET no-cors sin caché, separadas al menos 5 s tras un calentamiento. Es una referencia independiente: incluye procesamiento HTTP y posibles DNS/TCP/TLS. Una respuesta opaca no acredita éxito de API. AWS queda fuera del ranking WebSocket. No usar como monitorización continua. Para comparación homogénea, desplegar el mismo eco WebSocket en AWS.
 
-Es RTT de aplicación WebSocket observado por el navegador y no constituye una prueba ICMP ni de MTU/DF. Los 64 B corresponden al payload WebSocket. Si el frontend usa HTTPS, los backends deben exponerse mediante `wss://`.
+Variables: TEST_ROUNDS=500, TEST_PACKET_SIZE=64, TEST_INTERVAL_MS=100, TEST_TIMEOUT_MS=2000, TEST_WARMUPS=5, AWS_TEST_ROUNDS=10, AWS_TEST_INTERVAL_MS=5000. Configuración entregada por /app-config.json. Los fallos son de aplicación, no pérdida de paquetes IP.
 
 ## GitHub Actions y GHCR
 
